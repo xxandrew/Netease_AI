@@ -22,3 +22,7 @@ __pycache__/
 *.tmp
 *.temp
 *.log
+
+# 快捷指令脚本（本地使用，不上传）
+gitpush.bat
+gitpull.bat

@@ -1,0 +1,220 @@
+SIZE=13.33x7.50 PAGES=2
+=== Slide 1 ===
+bg_type=BACKGROUND (5)
+bg_rgb=NA
+SH[PLACEHOLDER (14)] 副标题 66 (0.49,0.33) 11.9x0.52
+ fill_t=None
+ T='附录' sz=304800 b=True c=inh fn=微软雅黑
+ T=' UXD ' sz=304800 b=True c=inh fn=微软雅黑
+ T='AI-Agent' sz=304800 b=True c=inh fn=微软雅黑
+ T='实践' sz=304800 b=True c=inh fn=微软雅黑
+SH[LINE (9)] 直线连接符 5 (0.58,0.97) 0.58x0.0
+SH[GROUP (6)] 组合 16 (0.58,1.19) 5.92x2.85
+  SH[AUTO_SHAPE (1)] 矩形 1 (0.58,1.19) 5.92x2.85
+   fill_t=SOLID (1)
+  SH[PICTURE (13)] 图片 13 (0.85,1.8) 3.5x2.05
+  SH[TEXT_BOX (17)] 文本框 7 (0.73,1.32) 4.98x0.37
+   fill_t=BACKGROUND (5)
+   T='一键爬取玩家体验反馈Skill' sz=203200 b=True c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 9 (4.57,1.82) 1.39x0.34
+   fill_t=SOLID (1)
+   T='需求挖掘' sz=203200 b=True c=C00000 fn=微软雅黑
+  SH[TEXT_BOX (17)] 文本框 11 (4.48,2.26) 1.82x1.65
+   fill_t=BACKGROUND (5)
+   T='打破信息茧房，基于海量真实反馈精准定位体验痛点' sz=177800 b=None c=inh fn=微软雅黑
+SH[GROUP (6)] 组合 69 (0.58,4.3) 5.92x2.85
+  SH[AUTO_SHAPE (1)] 矩形 1 (0.58,4.3) 5.92x2.85
+   fill_t=SOLID (1)
+  SH[PICTURE (13)] 图片 60 (0.84,4.91) 3.51x2.05
+  SH[TEXT_BOX (17)] 文本框 15 (0.73,4.42) 2.96x0.37
+   fill_t=BACKGROUND (5)
+   T='拆解需求精准分析' sz=203200 b=True c=inh fn=微软雅黑
+   T='Skill' sz=203200 b=True c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 20 (4.57,4.92) 1.39x0.34
+   fill_t=SOLID (1)
+   T='需求保质' sz=203200 b=True c=C00000 fn=微软雅黑
+  SH[TEXT_BOX (17)] 文本框 23 (4.48,5.37) 1.82x0.81
+   fill_t=BACKGROUND (5)
+   T='自动列出设计清单，确保要点及逻辑无遗漏' sz=177800 b=None c=inh fn=微软雅黑
+SH[GROUP (6)] 组合 47 (6.75,1.19) 5.92x2.85
+  SH[GROUP (6)] 组合 24 (6.75,1.19) 5.92x2.85
+    SH[AUTO_SHAPE (1)] 矩形 1 (0.58,1.19) 5.92x2.85
+     fill_t=SOLID (1)
+    SH[TEXT_BOX (17)] 文本框 28 (0.73,1.32) 3.1x0.37
+     fill_t=BACKGROUND (5)
+     T='自动提取流程图' sz=203200 b=True c=inh fn=微软雅黑
+     T='Skill' sz=203200 b=True c=inh fn=微软雅黑
+    SH[AUTO_SHAPE (1)] 矩形 30 (4.57,1.82) 1.39x0.34
+     fill_t=SOLID (1)
+     T='分析提效' sz=203200 b=True c=C00000 fn=微软雅黑
+    SH[TEXT_BOX (17)] 文本框 32 (4.48,2.26) 1.82x1.04
+     fill_t=BACKGROUND (5)
+     T='告别手动逐帧截图，秒级提取竞品交互流程图与界面层级' sz=177800 b=None c=inh fn=微软雅黑
+  SH[PICTURE (13)] 图片 46 (7.02,1.8) 3.53x2.05
+SH[GROUP (6)] 组合 6 (6.75,4.3) 5.92x2.85
+  SH[AUTO_SHAPE (1)] 矩形 1 (6.75,4.3) 5.92x2.85
+   fill_t=SOLID (1)
+  SH[PICTURE (13)] 图片 5 (7.02,4.91) 3.52x2.05
+  SH[TEXT_BOX (17)] 文本框 35 (6.9,4.42) 2.83x0.37
+   fill_t=BACKGROUND (5)
+   T='交互细节自动补全' sz=203200 b=True c=inh fn=微软雅黑
+   T='Skill' sz=203200 b=True c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 36 (10.74,4.92) 1.39x0.34
+   fill_t=SOLID (1)
+   T='产出提质' sz=203200 b=True c=C00000 fn=微软雅黑
+  SH[TEXT_BOX (17)] 文本框 38 (10.65,5.37) 2.02x1.39
+   fill_t=BACKGROUND (5)
+   T='自动扫描空态、极端情况、异常分支，补全边界状态' sz=177800 b=None c=inh fn=微软雅黑
+   T='设计环节提效' sz=177800 b=None c=inh fn=微软雅黑
+   T='20%' sz=177800 b=None c=inh fn=微软雅黑
+=== Slide 2 ===
+bg_type=BACKGROUND (5)
+bg_rgb=NA
+SH[GROUP (6)] 组合 5 (0.58,1.89) 2.84x1.11
+  SH[TEXT_BOX (17)] 文本框 17 (0.68,2.48) 2.65x0.5
+   fill_t=BACKGROUND (5)
+   T='打破信息茧房，基于海量真实反馈精准定位体验痛点' sz=152400 b=None c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 48 (0.58,2.35) 2.84x0.78
+   fill_t=None
+  SH[TEXT_BOX (17)] 文本框 19 (0.58,2.02) 2.84x0.33
+   fill_t=SOLID (1)
+   fill_rgb=C00000
+   T='1.' sz=152400 b=True c=inh fn=微软雅黑
+   T='一键爬取玩家体验反馈' sz=152400 b=True c=inh fn=微软雅黑
+   T='Skill' sz=152400 b=True c=inh fn=微软雅黑
+SH[PLACEHOLDER (14)] 副标题 66 (0.49,0.33) 11.9x0.52
+ fill_t=None
+ T='附录' sz=304800 b=True c=inh fn=微软雅黑
+ T=' UXD AI-Agent' sz=304800 b=True c=inh fn=微软雅黑
+ T='管线规划' sz=304800 b=True c=inh fn=微软雅黑
+SH[LINE (9)] 直线连接符 5 (0.58,0.97) 0.58x0.0
+SH[TEXT_BOX (17)] 文本框 1 (0.58,1.35) 3.0x0.31
+ fill_t=SOLID (1)
+ T='产品需求' sz=152400 b=True c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 2 (3.59,1.35) 3.0x0.31
+ fill_t=SOLID (1)
+ T='分析研究' sz=152400 b=True c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 3 (6.58,1.35) 3.0x0.31
+ fill_t=SOLID (1)
+ T='交互设计' sz=152400 b=True c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 4 (9.59,1.35) 3.0x0.31
+ fill_t=SOLID (1)
+ T='落地验证' sz=152400 b=True c=inh fn=微软雅黑
+SH[GROUP (6)] 组合 6 (0.58,3.17) 2.84x1.11
+  SH[TEXT_BOX (17)] 文本框 7 (0.68,2.48) 2.65x0.5
+   fill_t=BACKGROUND (5)
+   T='自动列出设计清单，确保要点及逻辑无遗漏' sz=152400 b=None c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 8 (0.58,2.35) 2.84x0.78
+   fill_t=None
+  SH[TEXT_BOX (17)] 文本框 9 (0.58,2.02) 2.84x0.33
+   fill_t=SOLID (1)
+   fill_rgb=C00000
+   T='2.' sz=152400 b=True c=inh fn=微软雅黑
+   T='拆解需求精准分析' sz=152400 b=True c=inh fn=微软雅黑
+   T='Skill' sz=152400 b=True c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 13 (0.58,4.44) 2.84x0.59
+ fill_t=SOLID (1)
+ T='3.' sz=152400 b=None c=inh fn=微软雅黑
+ T='需求变更自动追踪' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 14 (0.58,5.2) 2.84x0.59
+ fill_t=SOLID (1)
+ T='4.' sz=152400 b=None c=inh fn=微软雅黑
+ T='跨项目需求沉淀' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[GROUP (6)] 组合 20 (3.65,1.89) 2.84x1.11
+  SH[TEXT_BOX (17)] 文本框 22 (0.68,2.48) 2.65x0.5
+   fill_t=BACKGROUND (5)
+   T='告别手动逐帧截图，一键提取竞品流程图与界面层级' sz=152400 b=None c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 23 (0.58,2.35) 2.84x0.78
+   fill_t=None
+  SH[TEXT_BOX (17)] 文本框 24 (0.58,2.02) 2.84x0.33
+   fill_t=SOLID (1)
+   fill_rgb=C00000
+   T='1.' sz=152400 b=True c=inh fn=微软雅黑
+   T='自动' sz=152400 b=True c=inh fn=微软雅黑
+   T='提取流程图' sz=152400 b=True c=inh fn=微软雅黑
+   T='Skill' sz=152400 b=True c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 27 (3.65,3.17) 2.84x0.59
+ fill_t=SOLID (1)
+ T='2.' sz=152400 b=None c=inh fn=微软雅黑
+ T='设计灵感与创意' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 28 (3.65,3.94) 2.84x0.59
+ fill_t=SOLID (1)
+ T='3.' sz=152400 b=None c=inh fn=微软雅黑
+ T='竞品功能矩阵自动对比与差异可视化' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 30 (3.65,4.71) 2.84x0.59
+ fill_t=SOLID (1)
+ T='4.' sz=152400 b=None c=inh fn=微软雅黑
+ T='玩家画像与行为定期记录建立知识库' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[GROUP (6)] 组合 31 (6.65,1.89) 2.84x1.11
+  SH[TEXT_BOX (17)] 文本框 32 (0.68,2.48) 2.65x0.5
+   fill_t=BACKGROUND (5)
+   T='自动扫描空态、极端情况、异常分支，补全边界状态' sz=152400 b=None c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 33 (0.58,2.35) 2.84x0.78
+   fill_t=None
+  SH[TEXT_BOX (17)] 文本框 34 (0.58,2.02) 2.84x0.33
+   fill_t=SOLID (1)
+   fill_rgb=C00000
+   T='1.' sz=152400 b=True c=inh fn=微软雅黑
+   T='交互细节自动补全' sz=152400 b=True c=inh fn=微软雅黑
+   T='Skill' sz=152400 b=True c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 35 (6.66,3.17) 2.84x0.59
+ fill_t=SOLID (1)
+ T='2.' sz=152400 b=None c=inh fn=微软雅黑
+ T='信息可读性自动化检测插件' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 36 (6.66,3.94) 2.84x0.59
+ fill_t=SOLID (1)
+ T='3.' sz=152400 b=None c=inh fn=微软雅黑
+ T='一键可交互原型生成' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 37 (6.66,4.7) 2.84x0.59
+ fill_t=SOLID (1)
+ T='4.' sz=152400 b=None c=inh fn=微软雅黑
+ T='交互文档模板化生成' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[GROUP (6)] 组合 41 (9.67,1.89) 2.84x1.11
+  SH[TEXT_BOX (17)] 文本框 42 (0.68,2.48) 2.65x0.5
+   fill_t=BACKGROUND (5)
+   T='设计稿与落地图自动比对，定位视觉偏差并输出标注' sz=152400 b=None c=inh fn=微软雅黑
+  SH[AUTO_SHAPE (1)] 矩形 43 (0.58,2.35) 2.84x0.78
+   fill_t=None
+  SH[TEXT_BOX (17)] 文本框 44 (0.58,2.02) 2.84x0.33
+   fill_t=SOLID (1)
+   fill_rgb=C00000
+   T='1.' sz=152400 b=True c=inh fn=微软雅黑
+   T='实机差异自动走查反馈' sz=152400 b=True c=inh fn=微软雅黑
+   T='Skill' sz=152400 b=True c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 45 (9.67,3.17) 2.84x0.59
+ fill_t=SOLID (1)
+ T='2.' sz=152400 b=None c=inh fn=微软雅黑
+ T='跑查录屏一键转化为标准化 ' sz=152400 b=None c=inh fn=微软雅黑
+ T='Bug ' sz=152400 b=None c=inh fn=微软雅黑
+ T='验收单流程' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 46 (9.67,3.94) 2.84x0.59
+ fill_t=SOLID (1)
+ T='3.' sz=152400 b=None c=inh fn=微软雅黑
+ T='上线前体验 ' sz=152400 b=None c=inh fn=微软雅黑
+ T='Checklist ' sz=152400 b=None c=inh fn=微软雅黑
+ T='自动生成与核验' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 47 (9.67,4.7) 2.84x0.59
+ fill_t=SOLID (1)
+ T='4.' sz=152400 b=None c=inh fn=微软雅黑
+ T='模拟玩家体验，预判痛点及优化点' sz=152400 b=None c=inh fn=微软雅黑
+ T='Skill' sz=152400 b=None c=inh fn=微软雅黑
+SH[TEXT_BOX (17)] 文本框 49 (9.67,5.48) 2.84x0.59
+ fill_t=SOLID (1)
+ T='5.' sz=152400 b=None c=inh fn=微软雅黑
+ T='落地数据验证设计有效性自动生成报告' sz=152400 b=None c=inh fn=微软雅黑
+SH[AUTO_SHAPE (1)] 矩形 58 (9.94,0.33) 1.4x0.37
+ fill_t=None
+ T='已落地 ' sz=203200 b=None c=inh fn=None
+ T='5' sz=203200 b=None c=inh fn=None
+SH[AUTO_SHAPE (1)] 矩形 60 (11.44,0.33) 1.4x0.37
+ fill_t=SOLID (1)
+ T='规划中 ' sz=203200 b=None c=inh fn=None
+ T='12' sz=203200 b=None c=inh fn=None

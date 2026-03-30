@@ -1,0 +1,408 @@
+=== 基础信息 ===
+幻灯片尺寸: 12192000.0000 x 6858000.0000 emu = 13.33 x 7.50 inches
+页数: 2
+
+=== Slide Master 背景 ===
+master bg type: SOLID (1)
+master bg rgb: N/A
+
+=== Master Shapes ===
+  [PICTURE (13)] 图片 3 (0.0,0.0) 13.318x7.485
+  [PLACEHOLDER (14)] PlaceHolder 1 (0.667,0.558) 11.999x0.733 fill=BACKGROUND (5)
+    T='单击以编辑标题文本格式' sz=558800 b=False c=000000 fn=Arial
+
+=== Layouts ===
+
+=== 每页详细 ===
+
+--- Slide 1 (layout=标题和内容) ---
+bg_type=BACKGROUND (5)
+bg_rgb=inherited
+[PLACEHOLDER (14)] 副标题 66 | pos=(0.494,0.328) size=11.903x0.516
+  fill_type=None
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=LEFT (1) space_before=None space_after=None
+    RUN[0] T='附录' sz=304800 b=True i=None c=inh fn=微软雅黑
+    RUN[1] T=' UXD ' sz=304800 b=True i=None c=inh fn=微软雅黑
+    RUN[2] T='AI-Agent' sz=304800 b=True i=None c=inh fn=微软雅黑
+    RUN[3] T='实践' sz=304800 b=True i=None c=inh fn=微软雅黑
+[LINE (9)] 直线连接符 5 | pos=(0.583,0.966) size=0.583x0.0
+  line_width=25400
+  line_rgb=A50A0D
+[GROUP (6)] 组合 16 | pos=(0.583,1.195) size=5.917x2.847
+  [AUTO_SHAPE (1)] 矩形 1 | pos=(0.583,1.195) size=5.917x2.847
+    fill_type=SOLID (1)
+    line_width=0
+    line_rgb=C00000
+    auto_size=NONE (0) margin_l=90000 margin_t=45000
+    PARA[0] align=None space_before=None space_after=None
+  [PICTURE (13)] 图片 13 | pos=(0.854,1.802) size=3.501x2.045
+    line_width=0
+  [TEXT_BOX (17)] 文本框 7 | pos=(0.729,1.316) size=4.978x0.369
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=None space_before=0 space_after=127000
+      RUN[0] T='一键爬取玩家体验反馈Skill' sz=203200 b=True i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 9 | pos=(4.573,1.815) size=1.385x0.337
+    fill_type=SOLID (1)
+    line_width=0
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+      RUN[0] T='需求挖掘' sz=203200 b=True i=None c=C00000 fn=微软雅黑
+  [TEXT_BOX (17)] 文本框 11 | pos=(4.479,2.261) size=1.823x1.654
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=NONE (0) margin_l=91440 margin_t=45720
+    PARA[0] align=None space_before=0 space_after=127000
+      RUN[0] T='打破信息茧房，基于海量真实反馈精准定位体验痛点' sz=177800 b=None i=None c=inh fn=微软雅黑
+[GROUP (6)] 组合 69 | pos=(0.583,4.299) size=5.917x2.847
+  [AUTO_SHAPE (1)] 矩形 1 | pos=(0.583,4.299) size=5.917x2.847
+    fill_type=SOLID (1)
+    line_width=0
+    line_rgb=C00000
+    auto_size=NONE (0) margin_l=90000 margin_t=45000
+    PARA[0] align=None space_before=None space_after=None
+  [PICTURE (13)] 图片 60 | pos=(0.844,4.913) size=3.511x2.045
+    line_width=0
+  [TEXT_BOX (17)] 文本框 15 | pos=(0.729,4.421) size=2.964x0.369
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=None space_before=0 space_after=127000
+      RUN[0] T='拆解需求精准分析' sz=203200 b=True i=None c=inh fn=微软雅黑
+      RUN[1] T='Skill' sz=203200 b=True i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 20 | pos=(4.573,4.92) size=1.385x0.337
+    fill_type=SOLID (1)
+    line_width=0
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+      RUN[0] T='需求保质' sz=203200 b=True i=None c=C00000 fn=微软雅黑
+  [TEXT_BOX (17)] 文本框 23 | pos=(4.479,5.365) size=1.823x0.806
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=LEFT (1) space_before=0 space_after=127000
+      RUN[0] T='自动列出设计清单，确保要点及逻辑无遗漏' sz=177800 b=None i=None c=inh fn=微软雅黑
+[GROUP (6)] 组合 47 | pos=(6.75,1.195) size=5.917x2.847
+  [GROUP (6)] 组合 24 | pos=(6.75,1.195) size=5.917x2.847
+    [AUTO_SHAPE (1)] 矩形 1 | pos=(0.583,1.195) size=5.917x2.847
+      fill_type=SOLID (1)
+      line_width=0
+      line_rgb=C00000
+      auto_size=NONE (0) margin_l=90000 margin_t=45000
+      PARA[0] align=None space_before=None space_after=None
+    [TEXT_BOX (17)] 文本框 28 | pos=(0.729,1.316) size=3.102x0.369
+      fill_type=BACKGROUND (5)
+      line_width=0
+      auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+      PARA[0] align=None space_before=0 space_after=127000
+        RUN[0] T='自动提取流程图' sz=203200 b=True i=None c=inh fn=微软雅黑
+        RUN[1] T='Skill' sz=203200 b=True i=None c=inh fn=微软雅黑
+    [AUTO_SHAPE (1)] 矩形 30 | pos=(4.573,1.815) size=1.385x0.337
+      fill_type=SOLID (1)
+      line_width=0
+      auto_size=None margin_l=91440 margin_t=45720
+      PARA[0] align=CENTER (2) space_before=None space_after=None
+        RUN[0] T='分析提效' sz=203200 b=True i=None c=C00000 fn=微软雅黑
+    [TEXT_BOX (17)] 文本框 32 | pos=(4.479,2.261) size=1.823x1.043
+      fill_type=BACKGROUND (5)
+      line_width=0
+      auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+      PARA[0] align=None space_before=0 space_after=127000
+        RUN[0] T='告别手动逐帧截图，秒级提取竞品交互流程图与界面层级' sz=177800 b=None i=None c=inh fn=微软雅黑
+  [PICTURE (13)] 图片 46 | pos=(7.021,1.805) size=3.532x2.045
+    line_width=0
+[GROUP (6)] 组合 6 | pos=(6.75,4.299) size=5.917x2.847
+  [AUTO_SHAPE (1)] 矩形 1 | pos=(6.75,4.299) size=5.917x2.847
+    fill_type=SOLID (1)
+    line_width=0
+    line_rgb=C00000
+    auto_size=NONE (0) margin_l=90000 margin_t=45000
+    PARA[0] align=None space_before=None space_after=None
+  [PICTURE (13)] 图片 5 | pos=(7.021,4.913) size=3.521x2.045
+    line_width=0
+  [TEXT_BOX (17)] 文本框 35 | pos=(6.896,4.421) size=2.826x0.369
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=None space_before=0 space_after=127000
+      RUN[0] T='交互细节自动补全' sz=203200 b=True i=None c=inh fn=微软雅黑
+      RUN[1] T='Skill' sz=203200 b=True i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 36 | pos=(10.74,4.92) size=1.385x0.337
+    fill_type=SOLID (1)
+    line_width=0
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+      RUN[0] T='产出提质' sz=203200 b=True i=None c=C00000 fn=微软雅黑
+  [TEXT_BOX (17)] 文本框 38 | pos=(10.646,5.365) size=2.02x1.387
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=NONE (0) margin_l=91440 margin_t=45720
+    PARA[0] align=None space_before=0 space_after=127000
+      RUN[0] T='自动扫描空态、极端情况、异常分支，补全边界状态' sz=177800 b=None i=None c=inh fn=微软雅黑
+    PARA[1] align=None space_before=0 space_after=127000
+      RUN[0] T='设计环节提效' sz=177800 b=None i=None c=inh fn=微软雅黑
+      RUN[1] T='20%' sz=177800 b=None i=None c=inh fn=微软雅黑
+
+--- Slide 2 (layout=标题和内容) ---
+bg_type=BACKGROUND (5)
+bg_rgb=inherited
+[GROUP (6)] 组合 5 | pos=(0.583,1.895) size=2.84x1.111
+  [TEXT_BOX (17)] 文本框 17 | pos=(0.679,2.484) size=2.654x0.503
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=LEFT (1) space_before=0 space_after=127000
+      RUN[0] T='打破信息茧房，基于海量真实反馈精准定位体验痛点' sz=152400 b=None i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 48 | pos=(0.583,2.355) size=2.84x0.78
+    fill_type=None
+    line_width=0
+    line_rgb=C00000
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+  [TEXT_BOX (17)] 文本框 19 | pos=(0.583,2.023) size=2.84x0.334
+    fill_type=SOLID (1)
+    fill_rgb=C00000
+    line_width=0
+    auto_size=NONE (0) margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=0 space_after=127000
+      RUN[0] T='1.' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[1] T='一键爬取玩家体验反馈' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[2] T='Skill' sz=152400 b=True i=None c=inh fn=微软雅黑
+[PLACEHOLDER (14)] 副标题 66 | pos=(0.494,0.328) size=11.903x0.516
+  fill_type=None
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=LEFT (1) space_before=None space_after=None
+    RUN[0] T='附录' sz=304800 b=True i=None c=inh fn=微软雅黑
+    RUN[1] T=' UXD AI-Agent' sz=304800 b=True i=None c=inh fn=微软雅黑
+    RUN[2] T='管线规划' sz=304800 b=True i=None c=inh fn=微软雅黑
+[LINE (9)] 直线连接符 5 | pos=(0.583,0.966) size=0.583x0.0
+  line_width=25400
+  line_rgb=A50A0D
+[TEXT_BOX (17)] 文本框 1 | pos=(0.583,1.351) size=3.001x0.314
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='产品需求' sz=152400 b=True i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 2 | pos=(3.593,1.351) size=3.001x0.314
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='分析研究' sz=152400 b=True i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 3 | pos=(6.584,1.351) size=3.001x0.314
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='交互设计' sz=152400 b=True i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 4 | pos=(9.585,1.351) size=3.001x0.314
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='落地验证' sz=152400 b=True i=None c=inh fn=微软雅黑
+[GROUP (6)] 组合 6 | pos=(0.583,3.169) size=2.84x1.111
+  [TEXT_BOX (17)] 文本框 7 | pos=(0.679,2.484) size=2.654x0.503
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=LEFT (1) space_before=0 space_after=127000
+      RUN[0] T='自动列出设计清单，确保要点及逻辑无遗漏' sz=152400 b=None i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 8 | pos=(0.583,2.355) size=2.84x0.78
+    fill_type=None
+    line_width=0
+    line_rgb=C00000
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+  [TEXT_BOX (17)] 文本框 9 | pos=(0.583,2.023) size=2.84x0.334
+    fill_type=SOLID (1)
+    fill_rgb=C00000
+    line_width=0
+    auto_size=NONE (0) margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=0 space_after=127000
+      RUN[0] T='2.' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[1] T='拆解需求精准分析' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[2] T='Skill' sz=152400 b=True i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 13 | pos=(0.583,4.444) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='3.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='需求变更自动追踪' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 14 | pos=(0.583,5.202) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='4.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='跨项目需求沉淀' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[GROUP (6)] 组合 20 | pos=(3.648,1.895) size=2.84x1.111
+  [TEXT_BOX (17)] 文本框 22 | pos=(0.679,2.484) size=2.654x0.505
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=LEFT (1) space_before=0 space_after=127000
+      RUN[0] T='告别手动逐帧截图，一键提取竞品流程图与界面层级' sz=152400 b=None i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 23 | pos=(0.583,2.355) size=2.84x0.78
+    fill_type=None
+    line_width=0
+    line_rgb=C00000
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+  [TEXT_BOX (17)] 文本框 24 | pos=(0.583,2.023) size=2.84x0.334
+    fill_type=SOLID (1)
+    fill_rgb=C00000
+    line_width=0
+    auto_size=NONE (0) margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=0 space_after=127000
+      RUN[0] T='1.' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[1] T='自动' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[2] T='提取流程图' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[3] T='Skill' sz=152400 b=True i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 27 | pos=(3.648,3.169) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='2.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='设计灵感与创意' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 28 | pos=(3.648,3.939) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='3.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='竞品功能矩阵自动对比与差异可视化' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 30 | pos=(3.648,4.708) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='4.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='玩家画像与行为定期记录建立知识库' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[GROUP (6)] 组合 31 | pos=(6.654,1.895) size=2.84x1.111
+  [TEXT_BOX (17)] 文本框 32 | pos=(0.679,2.484) size=2.654x0.505
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=LEFT (1) space_before=0 space_after=127000
+      RUN[0] T='自动扫描空态、极端情况、异常分支，补全边界状态' sz=152400 b=None i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 33 | pos=(0.583,2.355) size=2.84x0.78
+    fill_type=None
+    line_width=0
+    line_rgb=C00000
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+  [TEXT_BOX (17)] 文本框 34 | pos=(0.583,2.023) size=2.84x0.334
+    fill_type=SOLID (1)
+    fill_rgb=C00000
+    line_width=0
+    auto_size=NONE (0) margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=0 space_after=127000
+      RUN[0] T='1.' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[1] T='交互细节自动补全' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[2] T='Skill' sz=152400 b=True i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 35 | pos=(6.664,3.169) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='2.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='信息可读性自动化检测插件' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 36 | pos=(6.664,3.939) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='3.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='一键可交互原型生成' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 37 | pos=(6.664,4.705) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='4.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='交互文档模板化生成' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[GROUP (6)] 组合 41 | pos=(9.666,1.895) size=2.84x1.111
+  [TEXT_BOX (17)] 文本框 42 | pos=(0.679,2.484) size=2.654x0.505
+    fill_type=BACKGROUND (5)
+    line_width=0
+    auto_size=SHAPE_TO_FIT_TEXT (1) margin_l=91440 margin_t=45720
+    PARA[0] align=LEFT (1) space_before=0 space_after=127000
+      RUN[0] T='设计稿与落地图自动比对，定位视觉偏差并输出标注' sz=152400 b=None i=None c=inh fn=微软雅黑
+  [AUTO_SHAPE (1)] 矩形 43 | pos=(0.583,2.355) size=2.84x0.78
+    fill_type=None
+    line_width=0
+    line_rgb=C00000
+    auto_size=None margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=None space_after=None
+  [TEXT_BOX (17)] 文本框 44 | pos=(0.583,2.023) size=2.84x0.334
+    fill_type=SOLID (1)
+    fill_rgb=C00000
+    line_width=0
+    auto_size=NONE (0) margin_l=91440 margin_t=45720
+    PARA[0] align=CENTER (2) space_before=0 space_after=127000
+      RUN[0] T='1.' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[1] T='实机差异自动走查反馈' sz=152400 b=True i=None c=inh fn=微软雅黑
+      RUN[2] T='Skill' sz=152400 b=True i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 45 | pos=(9.666,3.169) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='2.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='跑查录屏一键转化为标准化 ' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Bug ' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[3] T='验收单流程' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 46 | pos=(9.666,3.939) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='3.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='上线前体验 ' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Checklist ' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[3] T='自动生成与核验' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[4] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 47 | pos=(9.666,4.705) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='4.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='模拟玩家体验，预判痛点及优化点' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[2] T='Skill' sz=152400 b=None i=None c=inh fn=微软雅黑
+[TEXT_BOX (17)] 文本框 49 | pos=(9.666,5.477) size=2.84x0.594
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=NONE (0) margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=0 space_after=127000
+    RUN[0] T='5.' sz=152400 b=None i=None c=inh fn=微软雅黑
+    RUN[1] T='落地数据验证设计有效性自动生成报告' sz=152400 b=None i=None c=inh fn=微软雅黑
+[AUTO_SHAPE (1)] 矩形 58 | pos=(9.944,0.328) size=1.395x0.371
+  fill_type=None
+  line_width=0
+  auto_size=None margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=None space_after=None
+    RUN[0] T='已落地 ' sz=203200 b=None i=None c=inh fn=None
+    RUN[1] T='5' sz=203200 b=None i=None c=inh fn=None
+[AUTO_SHAPE (1)] 矩形 60 | pos=(11.444,0.328) size=1.395x0.371
+  fill_type=SOLID (1)
+  line_width=0
+  auto_size=None margin_l=91440 margin_t=45720
+  PARA[0] align=CENTER (2) space_before=None space_after=None
+    RUN[0] T='规划中 ' sz=203200 b=None i=None c=inh fn=None
+    RUN[1] T='12' sz=203200 b=None i=None c=inh fn=None

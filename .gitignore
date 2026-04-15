@@ -1,28 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.spec
+
+# 打包产物
+*.exe
+*.pkg
+*.zip
+
+# 数据库（本地数据，不入库）
+*.db
+*.sqlite3
+
 # 环境变量
 .env
-.env.local
+.env.*
+!.env.example
 
-# 操作系统文件
-Thumbs.db
-Desktop.ini
-.DS_Store
-
-# 编辑器/IDE
+# IDE
 .vscode/
 .idea/
 *.swp
-*.swo
 
-# 依赖目录
-node_modules/
-__pycache__/
-*.pyc
-
-# 临时文件
-*.tmp
-*.temp
-*.log
-
-# 快捷指令脚本（本地使用，不上传）
-gitpush.bat
-gitpull.bat
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

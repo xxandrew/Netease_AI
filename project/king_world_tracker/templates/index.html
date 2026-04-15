@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>👑 王者荣耀世界 · 舆情数据看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--accent:#f0883e;--green:#3fb950;
+  --blue:#58a6ff;--purple:#bc8cff;--red:#f85149;--text:#e6edf3;--muted:#8b949e;
+  --gold:#ffd700;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;}
+header{background:linear-gradient(135deg,#1a0a00,#2d1200);border-bottom:1px solid var(--accent)44;
+  padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-size:1.3rem;font-weight:800;background:linear-gradient(90deg,var(--gold),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.tabs{display:flex;gap:4px;padding:14px 32px 0;border-bottom:1px solid var(--border);}
+.tab{padding:9px 18px;cursor:pointer;border-radius:8px 8px 0 0;font-size:.88rem;
+  color:var(--muted);transition:all .2s;border:1px solid transparent;border-bottom:none;}
+.tab.active{color:var(--accent);border-color:var(--border);background:var(--card);border-bottom-color:var(--card);margin-bottom:-1px;}
+.main{padding:28px 32px;}
+.panel{display:none;}.panel.active{display:block;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.card h3{font-size:.95rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+/* 舆情仪表盘 */
+.sentiment-gauge{text-align:center;padding:12px 0;}
+.gauge-score{font-size:3.5rem;font-weight:900;line-height:1;}
+.gauge-label{font-size:.85rem;color:var(--muted);margin-top:6px;}
+.gauge-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:14px 0 8px;}
+.gauge-pos{background:var(--green);}
+.gauge-neu{background:var(--blue);}
+.gauge-neg{background:var(--red);}
+.gauge-legend{display:flex;gap:12px;justify-content:center;font-size:.75rem;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+/* 指标卡 */
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.stat-label{font-size:.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.stat-value{font-size:1.9rem;font-weight:800;}
+.stat-sub{font-size:.75rem;color:var(--muted);margin-top:4px;}
+/* 新闻 */
+.news-item{padding:12px 0;border-bottom:1px solid #21262d;display:flex;gap:12px;align-items:flex-start;}
+.news-item:last-child{border-bottom:none;}
+.news-sent{font-size:.7rem;padding:2px 8px;border-radius:20px;font-weight:700;flex-shrink:0;}
+.sent-positive{background:#3fb95022;color:#3fb950;}
+.sent-neutral{background:#58a6ff22;color:#58a6ff;}
+.sent-negative{background:#f8514922;color:#f85149;}
+.news-title{font-size:.85rem;line-height:1.5;}
+.news-source{font-size:.72rem;color:var(--muted);margin-top:3px;}
+/* 热评 */
+.comment-item{padding:8px 12px;background:#21262d;border-radius:8px;font-size:.83rem;
+  line-height:1.5;margin-bottom:8px;border-left:3px solid var(--accent);}
+/* 榜单 */
+.rank-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #21262d;}
+.rank-num{font-size:.85rem;font-weight:700;color:var(--muted);width:28px;}
+.rank-region{flex:1;font-size:.88rem;}
+.rank-val{font-size:.88rem;font-weight:700;}
+.rank-change{font-size:.75rem;}
+.up{color:var(--green);}.down{color:var(--red);}
+/* 视频 */
+.video-item{padding:10px 0;border-bottom:1px solid #21262d;}
+.video-title{font-size:.85rem;font-weight:600;margin-bottom:4px;}
+.video-meta{font-size:.75rem;color:var(--muted);display:flex;gap:12px;}
+.btn{padding:7px 14px;border-radius:7px;border:1px solid var(--border);
+  cursor:pointer;font-size:.82rem;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{opacity:.85;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;color:var(--muted);padding:32px;font-size:.88rem;}
+canvas{max-height:240px;}
+.last-update{font-size:.73rem;color:var(--muted);}
+.heat-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">👑 王者荣耀世界 · 舆情数据看板</div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span class="last-update" id="lastUpdate">加载中...</span>
+    <button class="btn btn-primary" onclick="refreshAll()">🔄 立即更新</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('overview')">📊 总览</div>
+  <div class="tab" onclick="switchTab('sentiment')">💬 舆情分析</div>
+  <div class="tab" onclick="switchTab('rank')">📱 榜单排名</div>
+  <div class="tab" onclick="switchTab('bilibili')">📺 B站数据</div>
+  <div class="tab" onclick="switchTab('news')">📰 媒体报道</div>
+</div>
+
+<div class="main">
+
+<!-- 总览 -->
+<div class="panel active" id="tab-overview">
+  <div class="grid3" id="statsRow">
+    <div class="stat-card"><div class="stat-label">舆情综合评分</div><div class="stat-value" id="ov-score" style="color:var(--accent)">-</div><div class="stat-sub">满分100分</div></div>
+    <div class="stat-card"><div class="stat-label">微博话题讨论量</div><div class="stat-value" id="ov-discuss" style="color:var(--blue)">-</div><div class="stat-sub">累计讨论帖子</div></div>
+    <div class="stat-card"><div class="stat-label">B站累计播放</div><div class="stat-value" id="ov-bili" style="color:var(--purple)">-</div><div class="stat-sub">相关视频总播放</div></div>
+    <div class="stat-card"><div class="stat-label">TapTap 评分</div><div class="stat-value" id="ov-score-tt" style="color:var(--gold)">-</div><div class="stat-sub">满分10分</div></div>
+    <div class="stat-card"><div class="stat-label">TapTap 预约量</div><div class="stat-value" id="ov-reserve" style="color:var(--green)">-</div><div class="stat-sub"></div></div>
+    <div class="stat-card"><div class="stat-label">媒体报道数</div><div class="stat-value" id="ov-news" style="color:var(--blue)">-</div><div class="stat-sub">近期报道</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>🌡️ 舆情情感分布</h3>
+      <canvas id="sentimentChart"></canvas>
+    </div>
+    <div class="card">
+      <h3>📈 综合舆情趋势</h3>
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🔥 热度仪表</h3>
+    <div id="heatGauge" style="padding:8px 0">
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:6px">
+        <span>冷清</span><span id="heatVal" style="color:var(--accent);font-weight:700">-</span><span>爆热</span>
+      </div>
+      <div class="heat-bar" id="heatBar" style="width:0%;transition:width 1s"></div>
+      <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:4px">
+        <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 舆情分析 -->
+<div class="panel" id="tab-sentiment">
+  <div class="grid2">
+    <div class="card">
+      <h3>💬 微博话题热度</h3>
+      <div id="weiboDetail"><p class="empty">加载中...</p></div>
+    </div>
+    <div class="card">
+      <h3>🔥 微博热门评论</h3>
+      <div id="hotComments"><p class="empty">加载中...</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📊 各话题情感对比</h3>
+    <canvas id="topicChart"></canvas>
+  </div>
+</div>
+
+<!-- 榜单排名 -->
+<div class="panel" id="tab-rank">
+  <div class="grid2">
+    <div class="card">
+      <h3>🍎 App Store 各区免费榜</h3>
+      <div id="appstoreRanks"><p class="empty">加载中...</p></div>
+    </div>
+    <div class="card">
+      <h3>📲 TapTap 数据</h3>
+      <div id="taptapData"><p class="empty">加载中...</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📈 App Store 中国区排名历史</h3>
+    <canvas id="rankHistoryChart"></canvas>
+  </div>
+</div>
+
+<!-- B站 -->
+<div class="panel" id="tab-bilibili">
+  <div class="grid3" id="biliStats">
+    <div class="stat-card"><div class="stat-label">相关视频总数</div><div class="stat-value" id="bili-videos" style="color:var(--purple)">-</div></div>
+    <div class="stat-card"><div class="stat-label">累计播放量</div><div class="stat-value" id="bili-views" style="color:var(--blue)">-</div></div>
+    <div class="stat-card"><div class="stat-label">内容情感指数</div><div class="stat-value" id="bili-sent" style="color:var(--green)">-</div><div class="stat-sub">0-100</div></div>
+  </div>
+  <div class="card">
+    <h3>🎬 热门相关视频 Top 5</h3>
+    <div id="topVideos"><p class="empty">加载中...</p></div>
+  </div>
+</div>
+
+<!-- 媒体报道 -->
+<div class="panel" id="tab-news">
+  <div class="grid2">
+    <div class="card">
+      <h3>📰 最新媒体报道</h3>
+      <div id="newsList"><p class="empty">加载中...</p></div>
+    </div>
+    <div class="card">
+      <h3>📊 报道情感分布</h3>
+      <canvas id="newsChart"></canvas>
+      <div id="newsSummary" style="margin-top:12px;font-size:.83rem;color:var(--muted)"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+let sentimentChart, trendChart, topicChart, rankChart, newsChart;
+
+function switchTab(name) {
+  const tabs = ['overview','sentiment','rank','bilibili','news'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id==='tab-'+name));
+}
+
+function fmtNum(n) {
+  if (!n && n!==0) return '-';
+  if (n>=100000000) return (n/100000000).toFixed(1)+'亿';
+  if (n>=10000) return (n/10000).toFixed(1)+'万';
+  return n.toLocaleString();
+}
+
+async function loadAll() {
+  try {
+    const [snap, weibo, bili, news, app, ranks] = await Promise.all([
+      fetch('/api/snapshot').then(r=>r.json()),
+      fetch('/api/weibo').then(r=>r.json()),
+      fetch('/api/bilibili').then(r=>r.json()),
+      fetch('/api/news').then(r=>r.json()),
+      fetch('/api/appstore').then(r=>r.json()),
+      fetch('/api/rank_history').then(r=>r.json()),
+    ]);
+    renderOverview(snap, weibo, bili, news, app);
+    renderSentiment(weibo);
+    renderRank(app, ranks);
+    renderBilibili(bili);
+    renderNews(news);
+    document.getElementById('lastUpdate').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderOverview(snap, weibo, bili, news, app) {
+  // 舆情评分
+  const score = snap.length ? snap[0].overall_score : 0;
+  const pos   = snap.length ? snap[0].pos_ratio : 0;
+  const neg   = snap.length ? snap[0].neg_ratio : 0;
+  const neu   = snap.length ? snap[0].neu_ratio : 0;
+  const heat  = snap.length ? snap[0].heat_score : 0;
+  document.getElementById('ov-score').textContent = score.toFixed(1);
+
+  // 微博
+  const wTotal = weibo.reduce((s,w)=>s+(w.discuss_count||0),0);
+  document.getElementById('ov-discuss').textContent = fmtNum(wTotal);
+
+  // B站
+  const bTotal = bili.reduce((s,b)=>s+(b.total_view||0),0);
+  document.getElementById('ov-bili').textContent = fmtNum(bTotal);
+
+  // TapTap
+  const tt = app.find(a=>a.source==='TapTap');
+  document.getElementById('ov-score-tt').textContent = tt ? (tt.score||'-') : '-';
+  document.getElementById('ov-reserve').textContent = tt ? fmtNum(tt.reserve_count) : '-';
+
+  // 新闻
+  document.getElementById('ov-news').textContent = news.length;
+
+  // 热度条
+  document.getElementById('heatVal').textContent = heat.toFixed(1) + ' / 100';
+  setTimeout(() => {
+    document.getElementById('heatBar').style.width = heat + '%';
+  }, 100);
+
+  // 情感饼图
+  if (sentimentChart) sentimentChart.destroy();
+  sentimentChart = new Chart(document.getElementById('sentimentChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['正面', '中性', '负面'],
+      datasets: [{
+        data: [Math.round(pos*100), Math.round(neu*100), Math.round(neg*100)],
+        backgroundColor: ['#3fb950','#58a6ff','#f85149'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#8b949e', font: { size: 12 } } },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}%` } },
+      }
+    }
+  });
+
+  // 趋势折线图
+  const snapHist = snap.slice(0, 14).reverse();
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: snapHist.map(s => s.fetched_at ? s.fetched_at.slice(0,16).replace('T',' ') : ''),
+      datasets: [
+        { label: '综合评分', data: snapHist.map(s=>s.overall_score||0), borderColor:'#f0883e', tension:.3, fill:false },
+        { label: '热度', data: snapHist.map(s=>s.heat_score||0), borderColor:'#ffd700', tension:.3, fill:false, borderDash:[4,2] },
+      ]
+    },
+    options: { responsive:true,
+      plugins:{legend:{labels:{color:'#8b949e'}}},
+      scales:{y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},x:{ticks:{color:'#8b949e',maxRotation:30},grid:{display:false}}}
+    }
+  });
+}
+
+function renderSentiment(weibo) {
+  if (!weibo.length) { document.getElementById('weiboDetail').innerHTML='<p class="empty">暂无数据</p>'; return; }
+  document.getElementById('weiboDetail').innerHTML = weibo.map(w => `
+    <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #21262d">
+      <div style="font-weight:700;margin-bottom:8px">#${w.topic}#</div>
+      <div style="display:flex;gap:16px;font-size:.82rem;flex-wrap:wrap">
+        <span>📖 阅读 <strong>${fmtNum(w.read_count)}</strong></span>
+        <span>💬 讨论 <strong>${fmtNum(w.discuss_count)}</strong></span>
+        <span style="color:var(--green)">👍 正面 ${Math.round((w.sentiment_pos||0)*100)}%</span>
+        <span style="color:var(--red)">👎 负面 ${Math.round((w.sentiment_neg||0)*100)}%</span>
+      </div>
+      <div style="display:flex;height:6px;border-radius:3px;overflow:hidden;margin-top:8px">
+        <div style="width:${Math.round((w.sentiment_pos||0)*100)}%;background:var(--green)"></div>
+        <div style="width:${Math.round((w.sentiment_neu||0)*100)}%;background:var(--blue)"></div>
+        <div style="width:${Math.round((w.sentiment_neg||0)*100)}%;background:var(--red)"></div>
+      </div>
+    </div>`).join('');
+
+  // 热评
+  const allComments = weibo.flatMap(w => {
+    try { return JSON.parse(w.hot_comments || '[]'); } catch { return []; }
+  });
+  document.getElementById('hotComments').innerHTML = allComments.length
+    ? allComments.slice(0,8).map(c=>`<div class="comment-item">${c}</div>`).join('')
+    : '<p class="empty">暂无热评数据</p>';
+
+  // 各话题情感对比柱图
+  if (topicChart) topicChart.destroy();
+  topicChart = new Chart(document.getElementById('topicChart'), {
+    type:'bar',
+    data:{
+      labels: weibo.map(w=>w.topic),
+      datasets:[
+        {label:'正面',data:weibo.map(w=>Math.round((w.sentiment_pos||0)*100)),backgroundColor:'#3fb950'},
+        {label:'中性',data:weibo.map(w=>Math.round((w.sentiment_neu||0)*100)),backgroundColor:'#58a6ff'},
+        {label:'负面',data:weibo.map(w=>Math.round((w.sentiment_neg||0)*100)),backgroundColor:'#f85149'},
+      ]
+    },
+    options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#8b949e'},grid:{display:false}},
+      y:{stacked:true,ticks:{color:'#8b949e',callback:v=>v+'%'},grid:{color:'#21262d'}}},
+      plugins:{legend:{labels:{color:'#8b949e'}}}}
+  });
+}
+
+function renderRank(app, ranks) {
+  const appstore = app.filter(a=>a.source==='App Store');
+  document.getElementById('appstoreRanks').innerHTML = appstore.length
+    ? appstore.map(a => {
+        const rankStr = a.rank > 0 ? `#${a.rank}` : a.rank === 0 ? '未上榜' : '查询失败';
+        const color = a.rank===1?'var(--gold)':a.rank<=5?'var(--green)':a.rank<=20?'var(--blue)':'var(--muted)';
+        return `<div class="rank-row">
+          <div class="rank-region">${a.region}</div>
+          <div class="rank-val" style="color:${color}">${rankStr}</div>
+          <div class="rank-change" style="color:var(--muted)">${a.rank_type}</div>
+        </div>`;
+      }).join('')
+    : '<p class="empty">暂无数据</p>';
+
+  const tt = app.find(a=>a.source==='TapTap');
+  document.getElementById('taptapData').innerHTML = tt ? `
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+      <div><div style="font-size:.75rem;color:var(--muted)">综合评分</div>
+        <div style="font-size:2.5rem;font-weight:800;color:var(--gold)">${tt.score || '-'} <span style="font-size:.9rem;color:var(--muted)">/ 10</span></div></div>
+      <div><div style="font-size:.75rem;color:var(--muted)">累计评论数</div>
+        <div style="font-size:1.4rem;font-weight:700;color:var(--blue)">${fmtNum(tt.review_count)}</div></div>
+      <div><div style="font-size:.75rem;color:var(--muted)">预约/下载量</div>
+        <div style="font-size:1.4rem;font-weight:700;color:var(--green)">${fmtNum(tt.reserve_count)}</div></div>
+    </div>` : '<p class="empty">暂无数据</p>';
+
+  // 排名历史图
+  const cnRanks = ranks.filter(r=>r.region && r.region.includes('中国')).slice(0,14).reverse();
+  if (rankChart) rankChart.destroy();
+  rankChart = new Chart(document.getElementById('rankHistoryChart'), {
+    type:'line',
+    data:{
+      labels: cnRanks.map(r=>r.fetched_at?r.fetched_at.slice(0,16).replace('T',' '):''),
+      datasets:[{label:'中国区排名',data:cnRanks.map(r=>r.rank||0),borderColor:'#f0883e',tension:.3,fill:false,pointRadius:4}]
+    },
+    options:{responsive:true,
+      plugins:{legend:{labels:{color:'#8b949e'}}},
+      scales:{y:{reverse:true,ticks:{color:'#8b949e',callback:v=>'#'+v},grid:{color:'#21262d'}},
+              x:{ticks:{color:'#8b949e',maxRotation:30},grid:{display:false}}}}
+  });
+}
+
+function renderBilibili(bili) {
+  const total_view = bili.reduce((s,b)=>s+(b.total_view||0),0);
+  const total_vids = bili.reduce((s,b)=>s+(b.video_count||0),0);
+  const avg_sent = bili.length ? bili.reduce((s,b)=>s+(b.sentiment_score||0),0)/bili.length : 0;
+  document.getElementById('bili-videos').textContent = fmtNum(total_vids);
+  document.getElementById('bili-views').textContent = fmtNum(total_view);
+  document.getElementById('bili-sent').textContent = Math.round(avg_sent*100);
+
+  const allTopVideos = bili.flatMap(b => {
+    try { return JSON.parse(b.top_videos||'[]'); } catch { return []; }
+  }).sort((a,b)=>(b.play||0)-(a.play||0)).slice(0,5);
+
+  document.getElementById('topVideos').innerHTML = allTopVideos.length
+    ? allTopVideos.map(v=>`
+        <div class="video-item">
+          <div class="video-title">${v.title}</div>
+          <div class="video-meta">
+            <span>▶ ${fmtNum(v.play)}</span>
+            <span>❤ ${fmtNum(v.like)}</span>
+            <span>👤 ${v.author||''}</span>
+          </div>
+        </div>`).join('')
+    : '<p class="empty">暂无数据</p>';
+}
+
+function renderNews(news) {
+  const sentLabel = {positive:'正面',neutral:'中性',negative:'负面'};
+  document.getElementById('newsList').innerHTML = news.length
+    ? news.map(n=>`
+        <div class="news-item">
+          <span class="news-sent sent-${n.sentiment}">${sentLabel[n.sentiment]||'中性'}</span>
+          <div>
+            <div class="news-title">${n.url ? `<a href="${n.url}" target="_blank" style="color:var(--text);text-decoration:none">${n.title}</a>` : n.title}</div>
+            <div class="news-source">${n.source} · ${n.published_at||''}</div>
+          </div>
+        </div>`).join('')
+    : '<p class="empty">暂无数据</p>';
+
+  const pos = news.filter(n=>n.sentiment==='positive').length;
+  const neg = news.filter(n=>n.sentiment==='negative').length;
+  const neu = news.filter(n=>n.sentiment==='neutral').length;
+  if (newsChart) newsChart.destroy();
+  newsChart = new Chart(document.getElementById('newsChart'), {
+    type:'doughnut',
+    data:{
+      labels:['正面报道','中性报道','负面报道'],
+      datasets:[{data:[pos,neu,neg],backgroundColor:['#3fb950','#58a6ff','#f85149'],borderWidth:0}]
+    },
+    options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}}}
+  });
+  document.getElementById('newsSummary').innerHTML =
+    `共 ${news.length} 篇报道：<span style="color:var(--green)">${pos} 篇正面</span> / <span style="color:var(--blue)">${neu} 篇中性</span> / <span style="color:var(--red)">${neg} 篇负面</span>`;
+}
+
+async function refreshAll() {
+  document.getElementById('lastUpdate').innerHTML = '<span class="spinner"></span> 采集中...';
+  await fetch('/api/refresh', {method:'POST'});
+  setTimeout(loadAll, 4000);
+}
+
+loadAll();
+setInterval(loadAll, 300000);
+</script>
+</body>
+</html>

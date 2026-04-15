@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🎮 游戏数据追踪看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --border: #30363d;
+    --accent: #58a6ff; --green: #3fb950; --purple: #bc8cff;
+    --orange: #f0883e; --red: #f85149; --text: #e6edf3;
+    --muted: #8b949e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header .actions { display: flex; gap: 10px; }
+  .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: .85rem; font-weight: 600; transition: all .2s; }
+  .btn-primary { background: var(--accent); color: #0d1117; border-color: var(--accent); }
+  .btn-primary:hover { opacity: .85; }
+  .btn-secondary { background: transparent; color: var(--text); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-green { background: var(--green); color: #0d1117; border-color: var(--green); }
+  .btn-green:hover { opacity: .85; }
+  .tabs { display: flex; gap: 4px; padding: 16px 32px 0; border-bottom: 1px solid var(--border); }
+  .tab { padding: 10px 20px; cursor: pointer; border-radius: 8px 8px 0 0; font-size: .9rem; color: var(--muted); transition: all .2s; border: 1px solid transparent; border-bottom: none; }
+  .tab.active { color: var(--accent); border-color: var(--border); background: var(--card); border-bottom-color: var(--card); margin-bottom: -1px; }
+  .tab:hover:not(.active) { color: var(--text); }
+  .main { padding: 32px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .stat-card .label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .stat-card .value { font-size: 2rem; font-weight: 700; }
+  .stat-card .sub { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .badge { font-size: .7rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .badge-steam { background: #1a9fff22; color: #1a9fff; }
+  .badge-twitch { background: #9147ff22; color: #9147ff; }
+  .badge-ios { background: #3fb95022; color: #3fb950; }
+  .badge-android { background: #f0883e22; color: #f0883e; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  thead th { text-align: left; padding: 8px 12px; color: var(--muted); font-size: .75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid #21262d; transition: background .15s; cursor: pointer; }
+  tbody tr:hover { background: #21262d; }
+  tbody td { padding: 10px 12px; }
+  .rank-num { font-weight: 700; color: var(--muted); width: 32px; }
+  .num-cell { font-variant-numeric: tabular-nums; }
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar { height: 6px; border-radius: 3px; min-width: 2px; }
+  .bar-steam { background: #1a9fff; }
+  .bar-twitch { background: #9147ff; }
+  .report-area { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .report-toolbar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+  .report-toolbar span { color: var(--muted); font-size: .85rem; }
+  .report-content { line-height: 1.7; font-size: .9rem; }
+  .report-content h1, .report-content h2, .report-content h3 { margin: 1em 0 .5em; color: var(--accent); }
+  .report-content p { margin-bottom: .8em; }
+  .report-content code { background: #21262d; padding: 2px 6px; border-radius: 4px; font-size: .85em; }
+  .report-content pre { background: #21262d; padding: 12px; border-radius: 8px; overflow-x: auto; margin-bottom: .8em; }
+  .report-content ul, .report-content ol { padding-left: 1.5em; margin-bottom: .8em; }
+  .report-content li { margin-bottom: .3em; }
+  .history-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .history-item { background: #21262d; border-radius: 8px; padding: 14px 16px; cursor: pointer; border: 1px solid transparent; transition: border-color .2s; }
+  .history-item:hover { border-color: var(--accent); }
+  .history-item .meta { font-size: .75rem; color: var(--muted); margin-bottom: 4px; }
+  .history-item .preview { font-size: .85rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-tip { text-align: center; color: var(--muted); padding: 40px; font-size: .9rem; }
+  .last-update { font-size: .75rem; color: var(--muted); }
+  canvas { max-height: 260px; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .modal h3 { margin-bottom: 16px; }
+  .modal-close { float: right; cursor: pointer; color: var(--muted); font-size: 1.2rem; }
+  /* 手游区域 tab */
+  .mobile-region-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .region-tab { padding: 8px 20px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: .88rem; font-weight: 600; transition: all .2s; }
+  .region-tab.active { background: var(--accent); color: #0d1117; border-color: var(--accent); }
+  .region-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+  .region-panel { display: none; }
+  .region-panel.active { display: block; }
+  .steam-region-panel { display: none; }
+  .steam-region-panel.active { display: block; }
+  .monitor-panel { display: none; }
+  .monitor-panel.active { display: block; }
+  /* 检测页 */
+  .monitor-subnav { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .mnav { padding:8px 18px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:.85rem; font-weight:600; transition:all .2s; }
+  .mnav.active { background:var(--card); color:var(--text); border-color:var(--accent); }
+  .mnav:hover:not(.active) { color:var(--text); border-color:var(--muted); }
+  .mnav-sub { padding:6px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:.82rem; font-weight:600; transition:all .2s; }
+  .mnav-sub.active { background:var(--accent); color:#0d1117; border-color:var(--accent); }
+  .msection { display:none; }
+  .msection.active { display:block; }
+  .tsection { display:none; }
+  .tsection.active { display:block; }
+  .alert-item { display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border-radius:8px; margin-bottom:8px; border:1px solid; }
+  .alert-item.success { background:#3fb95014; border-color:#3fb95044; }
+  .alert-item.warning { background:#f0883e14; border-color:#f0883e44; }
+  .alert-item.danger  { background:#f8514914; border-color:#f8514944; }
+  .alert-item.info    { background:#58a6ff14; border-color:#58a6ff44; }
+  .alert-icon { font-size:1.4rem; flex-shrink:0; }
+  .alert-body { flex:1; }
+  .alert-name { font-weight:700; font-size:.92rem; }
+  .alert-detail { font-size:.8rem; color:var(--muted); margin-top:3px; }
+  .overlap-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #21262d; font-size:.85rem; }
+  .overlap-bar-wrap { display:flex; align-items:center; gap:8px; }
+  .overlap-bar { height:8px; border-radius:4px; background:var(--accent); }
+  .watch-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #21262d; }
+  .watch-name { font-weight:600; font-size:.9rem; }
+  .watch-stats { display:flex; gap:16px; align-items:center; font-size:.82rem; }
+  .change-up { color:var(--green); }
+  .change-down { color:var(--red); }
+  .tag-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .tag { padding:3px 10px; border-radius:20px; font-size:.75rem; background:#21262d; color:var(--muted); }
+  .quality-row { display:grid; grid-template-columns:1.5fr 1.2fr 1fr 1fr 1fr 1fr; gap:8px; padding:10px 8px; border-bottom:1px solid #21262d; font-size:.82rem; align-items:center; }
+  .quality-header { font-weight:700; color:var(--muted); font-size:.75rem; text-transform:uppercase; }
+  .fresh { color:var(--green); }
+  .stale { color:var(--orange); }
+  .old { color:var(--red); }
+  .no_data { color:var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎮 游戏数据追踪看板</h1>
+  <div class="actions">
+    <span class="last-update" id="lastUpdate">正在加载...</span>
+    <button class="btn btn-secondary" onclick="refreshData()">🔄 刷新数据</button>
+    <button class="btn btn-green" onclick="openReport('daily')">📝 生成日报</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('overview')">📊 总览</div>
+  <div class="tab" onclick="switchTab('steam')">🕹️ Steam</div>
+  <div class="tab" onclick="switchTab('mobile')">� 手游</div>
+  <div class="tab" onclick="switchTab('reports')">🤖 AI 报告</div>
+  <div class="tab" onclick="switchTab('monitor')">🔍 数据检测</div>
+</div>
+
+<div class="main">
+
+  <!-- 总览 -->
+  <div class="panel active" id="tab-overview">
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="label">Steam 热门游戏</div><div class="value" id="st-count">-</div><div class="sub">已追踪游戏数</div></div>
+      <div class="stat-card"><div class="label">最高在线人数</div><div class="value" id="st-peak" style="color:var(--accent)">-</div><div class="sub" id="st-peak-name">-</div></div>
+      <div class="stat-card"><div class="label">Twitch 总观看量</div><div class="value" id="tw-viewers" style="color:var(--purple)">-</div><div class="sub">实时直播</div></div>
+      <div class="stat-card"><div class="label">手游追踪榜单</div><div class="value" id="mb-count" style="color:var(--green)">-</div><div class="sub">多平台综合</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>🕹️ Steam Top 10 在线 <span class="badge badge-steam">实时</span></h3>
+        <canvas id="steamChart"></canvas>
+      </div>
+      <div class="card">
+        <h3>📺 Twitch Top 10 热度 <span class="badge badge-twitch">直播</span></h3>
+        <canvas id="twitchChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steam -->
+  <div class="panel" id="tab-steam">
+    <div class="mobile-region-tabs">
+      <button class="region-tab active" onclick="switchSteamRegion('global')">🌍 全球</button>
+      <button class="region-tab" onclick="switchSteamRegion('cn')">🇨🇳 中国</button>
+      <button class="region-tab" onclick="switchSteamRegion('us')">🇺🇸 美国</button>
+      <button class="region-tab" onclick="switchSteamRegion('jp')">🇯🇵 日本</button>
+      <button class="region-tab" onclick="switchSteamRegion('kr')">🇰🇷 韩国</button>
+    </div>
+    <div>
+      <!-- 全球：含在线人数 -->
+      <div class="steam-region-panel active" id="steam-region-global">
+        <div class="card">
+          <h3>🌍 Steam 全球 Top 50 <span class="badge badge-steam">实时在线</span></h3>
+          <table>
+            <thead><tr><th>#</th><th>游戏名称</th><th>当前在线</th><th>峰值</th><th>好评率</th><th>标签</th></tr></thead>
+            <tbody id="steam-table-global"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- 各区：Top Sellers -->
+      <div class="steam-region-panel" id="steam-region-cn">
+        <div class="card">
+          <h3>🇨🇳 Steam 中国区 Top 50 <span class="badge badge-steam">畅销榜</span></h3>
+          <table>
+            <thead><tr><th>#</th><th>游戏名称</th><th>价格</th><th>标签</th></tr></thead>
+            <tbody id="steam-table-cn"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="steam-region-panel" id="steam-region-us">
+        <div class="card">
+          <h3>🇺🇸 Steam 美国区 Top 50 <span class="badge badge-steam">畅销榜</span></h3>
+          <table>
+            <thead><tr><th>#</th><th>游戏名称</th><th>价格</th><th>标签</th></tr></thead>
+            <tbody id="steam-table-us"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="steam-region-panel" id="steam-region-jp">
+        <div class="card">
+          <h3>🇯🇵 Steam 日本区 Top 50 <span class="badge badge-steam">畅销榜</span></h3>
+          <table>
+            <thead><tr><th>#</th><th>游戏名称</th><th>价格</th><th>标签</th></tr></thead>
+            <tbody id="steam-table-jp"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="steam-region-panel" id="steam-region-kr">
+        <div class="card">
+          <h3>🇰🇷 Steam 韩国区 Top 50 <span class="badge badge-steam">畅销榜</span></h3>
+          <table>
+            <thead><tr><th>#</th><th>游戏名称</th><th>价格</th><th>标签</th></tr></thead>
+            <tbody id="steam-table-kr"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Mobile -->
+  <div class="panel" id="tab-mobile">
+    <div class="mobile-region-tabs">
+      <button class="region-tab active" onclick="switchRegion('cn')">🇨🇳 中国</button>
+      <button class="region-tab" onclick="switchRegion('us')">🇺🇸 美国</button>
+      <button class="region-tab" onclick="switchRegion('jp')">🇯🇵 日本</button>
+      <button class="region-tab" onclick="switchRegion('kr')">🇰🇷 韩国</button>
+    </div>
+    <div class="region-panels">
+      <div class="region-panel active" id="region-cn">
+        <div class="grid2">
+          <div class="card">
+            <h3>🍎 App Store <span class="badge badge-ios">中国区</span></h3>
+            <table><thead><tr><th>#</th><th>游戏</th><th>分类</th></tr></thead>
+            <tbody id="mobile-cn-appstore"></tbody></table>
+          </div>
+          <div class="card">
+            <h3>📲 TapTap <span class="badge badge-android">国内安卓</span></h3>
+            <table><thead><tr><th>#</th><th>游戏</th><th>分类</th></tr></thead>
+            <tbody id="mobile-cn-taptap"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <div class="region-panel" id="region-us">
+        <div class="card">
+          <h3>🍎 App Store <span class="badge badge-ios">美国区</span></h3>
+          <table><thead><tr><th>#</th><th>游戏</th><th>分类</th></tr></thead>
+          <tbody id="mobile-us-appstore"></tbody></table>
+        </div>
+      </div>
+      <div class="region-panel" id="region-jp">
+        <div class="card">
+          <h3>🍎 App Store <span class="badge badge-ios">日本区</span></h3>
+          <table><thead><tr><th>#</th><th>游戏</th><th>分类</th></tr></thead>
+          <tbody id="mobile-jp-appstore"></tbody></table>
+        </div>
+      </div>
+      <div class="region-panel" id="region-kr">
+        <div class="card">
+          <h3>🍎 App Store <span class="badge badge-ios">韩国区</span></h3>
+          <table><thead><tr><th>#</th><th>游戏</th><th>分类</th></tr></thead>
+          <tbody id="mobile-kr-appstore"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 数据检测 -->
+  <div class="panel" id="tab-monitor">
+
+    <!-- 子导航 -->
+    <div class="monitor-subnav">
+      <button class="mnav active" onclick="switchMonitor('anomaly')">🚨 异常检测</button>
+      <button class="mnav" onclick="switchMonitor('trend')">📈 趋势分析</button>
+      <button class="mnav" onclick="switchMonitor('cross')">🌍 跨区对比</button>
+      <button class="mnav" onclick="switchMonitor('watchlist')">👁️ Watch List</button>
+      <button class="mnav" onclick="switchMonitor('diff')">📋 榜单 Diff</button>
+      <button class="mnav" onclick="switchMonitor('quality')">🧹 数据质量</button>
+    </div>
+
+    <!-- 1. 异常检测 -->
+    <div class="msection active" id="msec-anomaly">
+      <div class="card">
+        <h3>🚨 异常检测 <span style="font-size:.8rem;color:var(--muted);font-weight:400">基于历史均值，自动识别暴涨/暴跌/新进榜/消失</span>
+          <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <label style="font-size:.8rem;color:var(--muted)">灵敏度</label>
+            <select id="anomalyThreshold" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.8rem">
+              <option value="1.5">高（1.5x）</option>
+              <option value="2.0" selected>中（2.0x）</option>
+              <option value="3.0">低（3.0x）</option>
+            </select>
+            <button class="btn btn-primary" style="padding:5px 12px" onclick="loadAnomalies()">检测</button>
+          </span>
+        </h3>
+        <div id="anomalyList"><p class="empty-tip">点击检测开始分析</p></div>
+      </div>
+    </div>
+
+    <!-- 2. 趋势分析 -->
+    <div class="msection" id="msec-trend">
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="mnav-sub active" onclick="switchTrendTab('rising')">🚀 上升中</button>
+        <button class="mnav-sub" onclick="switchTrendTab('falling')">📉 下降中</button>
+        <button class="mnav-sub" onclick="switchTrendTab('weekly')">📅 周环比</button>
+      </div>
+      <div class="card">
+        <div class="tsection active" id="tsec-rising">
+          <h3>🚀 涨幅最大游戏</h3>
+          <table><thead><tr><th>游戏</th><th>当前在线</th><th>涨幅</th><th>连续状态</th></tr></thead>
+          <tbody id="trend-rising"></tbody></table>
+        </div>
+        <div class="tsection" id="tsec-falling">
+          <h3>📉 跌幅最大游戏</h3>
+          <table><thead><tr><th>游戏</th><th>当前在线</th><th>跌幅</th><th>连续状态</th></tr></thead>
+          <tbody id="trend-falling"></tbody></table>
+        </div>
+        <div class="tsection" id="tsec-weekly">
+          <h3>📅 周环比排行</h3>
+          <table><thead><tr><th>游戏</th><th>当前在线</th><th>周环比</th><th>连续状态</th></tr></thead>
+          <tbody id="trend-weekly"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 跨区对比 -->
+    <div class="msection" id="msec-cross">
+      <div class="grid2" style="margin-bottom:20px">
+        <div class="card">
+          <h3>🌐 多区同热游戏 <span class="badge badge-steam">同时上榜≥3区</span></h3>
+          <div id="cross-multi"></div>
+        </div>
+        <div class="card">
+          <h3>📊 区域重叠率矩阵</h3>
+          <div id="cross-overlap"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🎯 各区独热游戏（仅在该区上榜）</h3>
+        <div id="cross-exclusive" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- 4. Watch List -->
+    <div class="msection" id="msec-watchlist">
+      <div class="card" style="margin-bottom:16px">
+        <h3>➕ 添加关注游戏</h3>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <input id="watchInput" placeholder="输入游戏名称（如：Elden Ring）" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:.9rem" />
+          <button class="btn btn-primary" onclick="addWatch()">添加</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>👁️ 关注列表</h3>
+        <div id="watchlistContent"><p class="empty-tip">暂无关注游戏</p></div>
+      </div>
+    </div>
+
+    <!-- 5. 榜单 Diff -->
+    <div class="msection" id="msec-diff">
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+        <select id="diffPlatform" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+          <option value="steam">Steam</option>
+          <option value="mobile">手游</option>
+        </select>
+        <select id="diffRegion" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+          <option value="global">🌍 全球</option>
+          <option value="cn">🇨🇳 中国</option>
+          <option value="us">🇺🇸 美国</option>
+          <option value="jp">🇯🇵 日本</option>
+          <option value="kr">🇰🇷 韩国</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadDiff()">对比</button>
+        <span id="diffMeta" style="color:var(--muted);font-size:.8rem"></span>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>🆕 新进榜 <span id="diff-new-count" class="badge badge-ios">0</span></h3><div id="diff-new"></div></div>
+        <div class="card"><h3>👻 掉出榜 <span id="diff-gone-count" class="badge" style="background:#f8514922;color:#f85149">0</span></h3><div id="diff-gone"></div></div>
+        <div class="card"><h3>⬆️ 排名上升 Top 10</h3><div id="diff-up"></div></div>
+        <div class="card"><h3>⬇️ 排名下降 Top 10</h3><div id="diff-down"></div></div>
+      </div>
+    </div>
+
+    <!-- 6. 数据质量 -->
+    <div class="msection" id="msec-quality">
+      <div class="card">
+        <h3>🧹 数据质量报告 <button class="btn btn-secondary" style="margin-left:auto;padding:4px 12px;font-size:.8rem" onclick="loadQuality()">刷新检测</button></h3>
+        <div id="qualityTable" style="margin-top:12px"><p class="empty-tip">点击刷新检测</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 数据检测 -->
+  <div class="panel" id="tab-monitor">
+
+    <!-- Watch List 输入 -->
+    <div class="card" style="margin-bottom:20px">
+      <h3>👁️ Watch List <span class="badge badge-steam">关注游戏</span></h3>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <input id="watchInput" placeholder="输入游戏名称（如 Counter-Strike 2）"
+          style="flex:1;min-width:200px;background:#21262d;border:1px solid var(--border);border-radius:8px;
+                 padding:8px 12px;color:var(--text);font-size:.88rem;outline:none"
+          onkeydown="if(event.key==='Enter')addWatch()" />
+        <button class="btn btn-primary" onclick="addWatch()">+ 添加关注</button>
+      </div>
+      <table>
+        <thead><tr><th>游戏名称</th><th>排名</th><th>当前在线</th><th>排名变化</th><th>在线变化%</th><th>操作</th></tr></thead>
+        <tbody id="watchTable"></tbody>
+      </table>
+    </div>
+
+    <!-- 检测子 Tab -->
+    <div class="mobile-region-tabs" style="margin-bottom:16px">
+      <button class="region-tab active" onclick="switchMonitor('anomaly')">🚨 异常检测</button>
+      <button class="region-tab" onclick="switchMonitor('trend')">📈 趋势分析</button>
+      <button class="region-tab" onclick="switchMonitor('cross')">🌍 跨区对比</button>
+      <button class="region-tab" onclick="switchMonitor('diff')">📋 榜单 Diff</button>
+      <button class="region-tab" onclick="switchMonitor('quality')">🧹 数据质量</button>
+    </div>
+
+    <!-- 异常检测 -->
+    <div class="monitor-panel active" id="monitor-anomaly">
+      <div class="grid2">
+        <div class="card"><h3>🔥 在线暴涨</h3><table><thead><tr><th>游戏</th><th>变化%</th><th>当前</th></tr></thead><tbody id="m-surge"></tbody></table></div>
+        <div class="card"><h3>❄️ 在线暴跌</h3><table><thead><tr><th>游戏</th><th>变化%</th><th>当前</th></tr></thead><tbody id="m-drop"></tbody></table></div>
+        <div class="card"><h3>🆕 新游冲榜</h3><table><thead><tr><th>游戏</th><th>排名</th><th>在线</th></tr></thead><tbody id="m-new"></tbody></table></div>
+        <div class="card"><h3>💨 游戏消失</h3><table><thead><tr><th>游戏</th><th>上次排名</th></tr></thead><tbody id="m-gone"></tbody></table></div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>🎢 排名跳跃 ≥10位</h3><table><thead><tr><th>游戏</th><th>上次排名</th><th>当前排名</th><th>变化</th></tr></thead><tbody id="m-jump"></tbody></table></div>
+    </div>
+
+    <!-- 趋势分析 -->
+    <div class="monitor-panel" id="monitor-trend">
+      <div class="grid2">
+        <div class="card"><h3>📈 持续上升</h3><table><thead><tr><th>游戏</th><th>涨幅%</th></tr></thead><tbody id="m-rising"></tbody></table></div>
+        <div class="card"><h3>📉 持续下降</h3><table><thead><tr><th>游戏</th><th>跌幅%</th></tr></thead><tbody id="m-falling"></tbody></table></div>
+        <div class="card"><h3>🚀 增速 Top 10</h3><table><thead><tr><th>游戏</th><th>增速%</th><th>起始→当前</th></tr></thead><tbody id="m-growth"></tbody></table></div>
+        <div class="card"><h3>📊 周环比 Top 10</h3><table><thead><tr><th>游戏</th><th>当前</th><th>上周</th><th>变化%</th></tr></thead><tbody id="m-week"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- 跨区对比 -->
+    <div class="monitor-panel" id="monitor-cross">
+      <div class="grid2" style="margin-bottom:16px">
+        <div class="card"><h3>🌍 Steam 多区同热</h3><table><thead><tr><th>游戏</th><th>出现区域</th></tr></thead><tbody id="m-multihot"></tbody></table></div>
+        <div class="card"><h3>📱 手游多区同热</h3><table><thead><tr><th>游戏</th><th>出现区域</th></tr></thead><tbody id="m-mobilehot"></tbody></table></div>
+        <div class="card"><h3>🔀 区域重叠率（Steam）</h3><table><thead><tr><th>区域对</th><th>共同游戏数</th><th>重叠率</th></tr></thead><tbody id="m-overlap"></tbody></table></div>
+        <div class="card"><h3>⚡ 区域独热游戏（Steam）</h3><div id="m-exclusive" style="font-size:.85rem;line-height:2"></div></div>
+      </div>
+    </div>
+
+    <!-- 榜单 Diff -->
+    <div class="monitor-panel" id="monitor-diff">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+        <select id="diffPlatform" style="background:#21262d;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text)">
+          <option value="steam">Steam</option><option value="mobile">手游</option>
+        </select>
+        <select id="diffRegion" style="background:#21262d;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text)">
+          <option value="global">🌍 全球</option><option value="cn">🇨🇳 中国</option>
+          <option value="us">🇺🇸 美国</option><option value="jp">🇯🇵 日本</option><option value="kr">🇰🇷 韩国</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadDiff()">对比</button>
+        <span id="diffTimeInfo" style="font-size:.75rem;color:var(--muted)"></span>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>🆕 新进榜</h3><table><thead><tr><th>游戏</th><th>排名</th></tr></thead><tbody id="d-new"></tbody></table></div>
+        <div class="card"><h3>⬇️ 掉榜</h3><table><thead><tr><th>游戏</th><th>上次排名</th></tr></thead><tbody id="d-gone"></tbody></table></div>
+        <div class="card"><h3>↑ 排名上升 Top 10</h3><table><thead><tr><th>游戏</th><th>当前排名</th><th>涨幅</th></tr></thead><tbody id="d-rise"></tbody></table></div>
+        <div class="card"><h3>↓ 排名下降 Top 10</h3><table><thead><tr><th>游戏</th><th>当前排名</th><th>跌幅</th></tr></thead><tbody id="d-fall"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- 数据质量 -->
+    <div class="monitor-panel" id="monitor-quality">
+      <div class="grid2" id="qualityGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- Reports -->
+  <div class="panel" id="tab-reports">
+    <div class="report-area" style="margin-bottom:20px">
+      <h3 style="margin-bottom:16px">📊 生成游戏分析 PPT</h3>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input id="pptGameName" placeholder="输入游戏名称（如：Counter-Strike 2）"
+          style="flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:.9rem" />
+        <select id="pptDays" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+          <option value="7">近 7 天</option>
+          <option value="14">近 14 天</option>
+          <option value="30" selected>近 30 天</option>
+          <option value="90">近 90 天</option>
+        </select>
+        <button class="btn btn-primary" onclick="generatePPT()" id="pptBtn">🎯 生成 PPT</button>
+        <span id="pptStatus" style="font-size:.85rem;color:var(--muted)"></span>
+      </div>
+      <div style="margin-top:12px;font-size:.8rem;color:var(--muted)">
+        💡 PPT 包含：封面、执行摘要（6项关键指标）、趋势折线图、区域排名对比、榜单变动时间线、竞品横向对比，共 6 页
+      </div>
+    </div>
+    <div class="report-area">
+      <div class="report-toolbar">
+        <button class="btn btn-green" onclick="openReport('daily')">📝 生成日报</button>
+        <button class="btn btn-primary" onclick="openReport('weekly')">📊 生成周报</button>
+        <span id="reportStatus"></span>
+      </div>
+      <div id="reportContent" class="report-content"><p style="color:var(--muted)">点击上方按钮生成 AI 分析报告...</p></div>
+    </div>
+    <div class="history-list" id="reportHistory"></div>
+  </div>
+
+</div>
+
+<!-- 趋势弹窗 -->
+<div class="modal-overlay" id="trendModal">
+  <div class="modal">
+    <span class="modal-close" onclick="closeTrend()">✕</span>
+    <h3 id="trendTitle">历史趋势</h3>
+    <canvas id="trendChart"></canvas>
+  </div>
+</div>
+
+<script>
+let steamData=[], twitchData=[], mobileData=[];
+let steamChart, twitchChart, trendChart;
+
+// ─── Tab 切换 ───
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['overview','steam','mobile','reports','monitor'][i] === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+// ─── 加载数据 ───
+async function loadAll() {
+  const [s, t, m] = await Promise.all([
+    fetch('/api/steam').then(r=>r.json()),
+    fetch('/api/twitch').then(r=>r.json()),
+    fetch('/api/mobile').then(r=>r.json()),
+  ]);
+  steamData = s; twitchData = t; mobileData = m;
+  renderStats(); renderCharts(); renderTables();
+  document.getElementById('lastUpdate').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
+  loadReportHistory();
+}
+
+function fmtNum(n) {
+  if (!n && n !== 0) return '-';
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString();
+}
+
+// ─── Stats ───
+function renderStats() {
+  // steamData 现在是按 region_code 分组的对象
+  const allSteam = Object.values(steamData).flat();
+  const globalSteam = steamData['global'] || [];
+  document.getElementById('st-count').textContent = globalSteam.length;
+  if (globalSteam.length) {
+    const top = globalSteam.reduce((a,b) => (a.current_players||0) > (b.current_players||0) ? a : b);
+    document.getElementById('st-peak').textContent = fmtNum(top.current_players);
+    document.getElementById('st-peak-name').textContent = top.name;
+  }
+  const totalViewers = twitchData.reduce((s,g) => s + (g.viewer_count||0), 0);
+  document.getElementById('tw-viewers').textContent = fmtNum(totalViewers);
+  const totalMobile = Object.values(mobileData).reduce((s,arr) => s + arr.length, 0);
+  document.getElementById('mb-count').textContent = totalMobile;
+}
+
+// ─── Charts ───
+function renderCharts() {
+  const top10s = (steamData['global'] || []).slice(0,10);
+  if (steamChart) steamChart.destroy();
+  steamChart = new Chart(document.getElementById('steamChart'), {
+    type: 'bar',
+    data: {
+      labels: top10s.map(g => g.name.length>12 ? g.name.slice(0,12)+'…' : g.name),
+      datasets: [{
+        label: '当前在线',
+        data: top10s.map(g => g.current_players),
+        backgroundColor: '#1a9fff88',
+        borderColor: '#1a9fff',
+        borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},x:{ticks:{color:'#8b949e'},grid:{display:false}}} }
+  });
+
+  const top10t = twitchData.slice(0,10);
+  if (twitchChart) twitchChart.destroy();
+  twitchChart = new Chart(document.getElementById('twitchChart'), {
+    type: 'bar',
+    data: {
+      labels: top10t.map(g => g.name.length>12 ? g.name.slice(0,12)+'…' : g.name),
+      datasets: [{
+        label: '观看量',
+        data: top10t.map(g => g.viewer_count),
+        backgroundColor: '#9147ff88',
+        borderColor: '#9147ff',
+        borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},x:{ticks:{color:'#8b949e'},grid:{display:false}}} }
+  });
+}
+
+// ─── Steam 分区渲染 ───
+function renderSteamTables() {
+  // 全球区（含在线人数+进度条）
+  const global = steamData['global'] || [];
+  const maxP = global.length ? Math.max(...global.map(g => g.current_players||0)) || 1 : 1;
+  document.getElementById('steam-table-global').innerHTML = global.length
+    ? global.map((g, i) => {
+        const pct = (g.positive_reviews||g.negative_reviews)
+          ? Math.round((g.positive_reviews/((g.positive_reviews||0)+(g.negative_reviews||0)))*100)+'%' : '-';
+        const w = Math.round(((g.current_players||0)/maxP)*100);
+        return `<tr onclick="showTrend('${g.name.replace(/'/g,"\\'")}')">
+          <td class="rank-num">${g.rank||i+1}</td>
+          <td>${g.name}</td>
+          <td><div class="bar-wrap"><div class="bar bar-steam" style="width:${w}px"></div><span class="num-cell">${fmtNum(g.current_players)}</span></div></td>
+          <td class="num-cell">${fmtNum(g.peak_players)}</td>
+          <td>${pct}</td>
+          <td style="color:var(--muted);font-size:.8rem">${g.tags||'-'}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="empty-tip">暂无数据，请刷新</td></tr>';
+
+  // 各区（畅销榜，无在线人数）
+  ['cn','us','jp','kr'].forEach(code => {
+    const list = steamData[code] || [];
+    document.getElementById(`steam-table-${code}`).innerHTML = list.length
+      ? list.map((g, i) => `<tr>
+          <td class="rank-num">${g.rank||i+1}</td>
+          <td>${g.name}</td>
+          <td style="color:var(--muted)">${g.price||'-'}</td>
+          <td style="color:var(--muted);font-size:.8rem">${g.tags||'-'}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" class="empty-tip">暂无数据，请刷新</td></tr>';
+  });
+}
+
+// ─── Steam 区域 Tab 切换 ───
+function switchSteamRegion(code) {
+  const codes = ['global','cn','us','jp','kr'];
+  document.querySelectorAll('#tab-steam .region-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', codes[i] === code);
+  });
+  document.querySelectorAll('.steam-region-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'steam-region-' + code);
+  });
+}
+
+// ─── Tables ───
+function renderTables() {
+  renderSteamTables();
+
+  const maxV = twitchData.length ? Math.max(...twitchData.map(g=>g.viewer_count||0)) : 1;
+  document.getElementById('twitchTable').innerHTML = twitchData.map((g,i) => {
+    const w = Math.round((g.viewer_count/maxV)*120);
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td>${g.name}</td>
+      <td class="num-cell">${fmtNum(g.viewer_count)}</td>
+      <td class="num-cell">${g.channel_count||'-'}</td>
+      <td><div class="bar-wrap"><div class="bar bar-twitch" style="width:${w}px"></div></div></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty-tip">暂无数据</td></tr>';
+
+  renderMobileTables();
+}
+
+// ─── 手游分区渲染 ───
+function renderMobileRows(list) {
+  if (!list || !list.length) return '<tr><td colspan="3" class="empty-tip">暂无数据</td></tr>';
+  return list.map((g, i) => `<tr>
+    <td class="rank-num">${g.rank || i+1}</td>
+    <td>${g.name}</td>
+    <td style="color:var(--muted);font-size:.8rem">${g.category || '-'}</td>
+  </tr>`).join('');
+}
+
+function renderMobileTables() {
+  // 中国区
+  const cnStore = (mobileData['cn'] || []).filter(g => g.platform === 'App Store');
+  const cnTaptap = (mobileData['cn'] || []).filter(g => g.platform === 'TapTap');
+  document.getElementById('mobile-cn-appstore').innerHTML = renderMobileRows(cnStore);
+  document.getElementById('mobile-cn-taptap').innerHTML = renderMobileRows(cnTaptap);
+  // 美国区
+  document.getElementById('mobile-us-appstore').innerHTML = renderMobileRows(mobileData['us'] || []);
+  // 日本区
+  document.getElementById('mobile-jp-appstore').innerHTML = renderMobileRows(mobileData['jp'] || []);
+  // 韩国区
+  document.getElementById('mobile-kr-appstore').innerHTML = renderMobileRows(mobileData['kr'] || []);
+}
+
+// ─── 手游区域 Tab 切换 ───
+function switchRegion(code) {
+  document.querySelectorAll('.region-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', ['cn','us','jp','kr'][i] === code);
+  });
+  document.querySelectorAll('.region-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'region-' + code);
+  });
+}
+
+// ─── 趋势弹窗 ───
+async function showTrend(name) {
+  const data = await fetch('/api/steam/trend?name='+encodeURIComponent(name)).then(r=>r.json());
+  if (!data.length) return;
+  document.getElementById('trendTitle').textContent = name + ' 历史在线趋势';
+  const reversed = [...data].reverse();
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: reversed.map(d => d.fetched_at.slice(0,16).replace('T',' ')),
+      datasets: [{ label:'当前在线', data: reversed.map(d=>d.current_players), borderColor:'#1a9fff', backgroundColor:'#1a9fff22', fill:true, tension:.3, pointRadius:3 }]
+    },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}},x:{ticks:{color:'#8b949e',maxRotation:45},grid:{display:false}}} }
+  });
+  document.getElementById('trendModal').classList.add('open');
+}
+function closeTrend() { document.getElementById('trendModal').classList.remove('open'); }
+
+// ─── AI 报告 ───
+async function openReport(type) {
+  switchTab('reports');
+  const status = document.getElementById('reportStatus');
+  const content = document.getElementById('reportContent');
+  status.innerHTML = '<span class="spinner"></span> 正在生成 ' + (type==='daily'?'日报':'周报') + '...';
+  content.innerHTML = '<p style="color:var(--muted)">AI 分析中，请稍候...</p>';
+  try {
+    const res = await fetch('/api/report/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type}) });
+    const data = await res.json();
+    content.innerHTML = marked.parse(data.content);
+    status.innerHTML = '✅ 生成完成';
+    loadReportHistory();
+  } catch(e) {
+    status.innerHTML = '❌ 生成失败';
+    content.innerHTML = '<p style="color:var(--red)">生成失败，请检查配置</p>';
+  }
+}
+
+async function loadReportHistory() {
+  const data = await fetch('/api/reports').then(r=>r.json());
+  document.getElementById('reportHistory').innerHTML = data.map(r => `
+    <div class="history-item" onclick="showHistoryReport(${r.id})">
+      <div class="meta">${r.report_type === 'daily' ? '📝 日报' : '📊 周报'} · ${r.created_at.slice(0,16).replace('T',' ')}</div>
+      <div class="preview">${r.content.slice(0,80)}...</div>
+    </div>
+  `).join('') || '<p style="color:var(--muted);padding:20px">暂无历史报告</p>';
+  window._reportCache = data;
+}
+
+function showHistoryReport(id) {
+  const r = (window._reportCache||[]).find(x=>x.id===id);
+  if (!r) return;
+  document.getElementById('reportContent').innerHTML = marked.parse(r.content);
+  document.getElementById('reportStatus').innerHTML = '📂 ' + r.created_at.slice(0,16).replace('T',' ');
+}
+
+// ─── 刷新 ───
+async function refreshData() {
+  document.getElementById('lastUpdate').textContent = '刷新中...';
+  await fetch('/api/refresh', {method:'POST'});
+  setTimeout(loadAll, 3000);
+}
+
+// ─── 检测页子导航 ───
+function switchMonitor(sec) {
+  document.querySelectorAll('.mnav').forEach((b,i) =>
+    b.classList.toggle('active', ['anomaly','trend','cross','watchlist','diff','quality'][i] === sec));
+  document.querySelectorAll('.msection').forEach(s =>
+    s.classList.toggle('active', s.id === 'msec-' + sec));
+  // 自动加载
+  if (sec === 'trend') loadTrends();
+  if (sec === 'cross') loadCross();
+  if (sec === 'watchlist') loadWatchlist();
+  if (sec === 'quality') loadQuality();
+}
+
+function switchTrendTab(tab) {
+  document.querySelectorAll('.mnav-sub').forEach((b,i) =>
+    b.classList.toggle('active', ['rising','falling','weekly'][i] === tab));
+  document.querySelectorAll('.tsection').forEach(s =>
+    s.classList.toggle('active', s.id === 'tsec-' + tab));
+}
+
+// ─── 1. 异常检测 ───
+async function loadAnomalies() {
+  const threshold = document.getElementById('anomalyThreshold').value;
+  document.getElementById('anomalyList').innerHTML = '<p class="empty-tip"><span class="spinner"></span> 分析中...</p>';
+  const data = await fetch(`/api/monitor/anomalies?threshold=${threshold}`).then(r=>r.json());
+  if (data.error) {
+    document.getElementById('anomalyList').innerHTML = `<p class="empty-tip">⚠️ ${data.error}</p>`; return;
+  }
+  if (!data.items.length) {
+    document.getElementById('anomalyList').innerHTML = '<p class="empty-tip">✅ 未发现异常数据</p>'; return;
+  }
+  document.getElementById('anomalyList').innerHTML = data.items.map(a => `
+    <div class="alert-item ${a.level}">
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-body">
+        <div class="alert-name">${a.name} <span class="badge" style="font-size:.68rem">${a.label}</span></div>
+        <div class="alert-detail">${a.detail}</div>
+        <div class="alert-detail" style="margin-top:4px">
+          当前在线：<strong>${fmtNum(a.current)}</strong>
+          ${a.prev ? `&nbsp;历史均值：<strong>${fmtNum(a.prev)}</strong>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── 2. 趋势分析 ───
+let trendDataCache = null;
+async function loadTrends() {
+  if (trendDataCache) { renderTrendTables(trendDataCache); return; }
+  const data = await fetch('/api/monitor/trends').then(r=>r.json());
+  if (data.error) {
+    ['rising','falling','weekly'].forEach(k =>
+      document.getElementById(`trend-${k}`).innerHTML = `<tr><td colspan="4" class="empty-tip">⚠️ ${data.error}</td></tr>`);
+    return;
+  }
+  trendDataCache = data;
+  renderTrendTables(data);
+}
+
+function renderTrendRow(g, rateKey) {
+  const rate = g[rateKey];
+  const rateColor = rate > 0 ? 'var(--green)' : rate < 0 ? 'var(--red)' : 'var(--muted)';
+  const rateStr = (rate > 0 ? '+' : '') + rate + '%';
+  const streak = g.streak > 1 ? `${g.streak_dir === 'up' ? '⬆' : '⬇'} 连续${g.streak}次` : '-';
+  return `<tr>
+    <td>${g.name}</td>
+    <td class="num-cell">${fmtNum(g.current)}</td>
+    <td style="color:${rateColor};font-weight:700">${rateStr}</td>
+    <td style="color:var(--muted)">${streak}</td>
+  </tr>`;
+}
+
+function renderTrendTables(data) {
+  document.getElementById('trend-rising').innerHTML =
+    data.rising.length ? data.rising.map(g => renderTrendRow(g,'change_rate')).join('')
+    : '<tr><td colspan="4" class="empty-tip">暂无涨幅数据</td></tr>';
+  document.getElementById('trend-falling').innerHTML =
+    data.falling.length ? data.falling.map(g => renderTrendRow(g,'change_rate')).join('')
+    : '<tr><td colspan="4" class="empty-tip">暂无跌幅数据</td></tr>';
+  document.getElementById('trend-weekly').innerHTML =
+    data.weekly.length ? data.weekly.map(g => renderTrendRow(g,'weekly_rate')).join('')
+    : '<tr><td colspan="4" class="empty-tip">暂无周环比数据</td></tr>';
+}
+
+// ─── 3. 跨区对比 ───
+async function loadCross() {
+  document.getElementById('cross-multi').innerHTML = '<p class="empty-tip"><span class="spinner"></span></p>';
+  const data = await fetch('/api/monitor/cross_region').then(r=>r.json());
+  if (data.error) {
+    document.getElementById('cross-multi').innerHTML = `<p class="empty-tip">⚠️ ${data.error}</p>`; return;
+  }
+  // 多区同热
+  document.getElementById('cross-multi').innerHTML = data.multi_region.length
+    ? data.multi_region.map(g => `
+        <div class="overlap-row">
+          <span>${g.name}</span>
+          <span style="color:var(--muted);font-size:.78rem">${g.regions.join(' ')}</span>
+          <span class="badge badge-steam">${g.count}区</span>
+        </div>`).join('')
+    : '<p class="empty-tip">暂无多区同热数据</p>';
+  // 重叠率
+  document.getElementById('cross-overlap').innerHTML = data.overlap_matrix
+    .map(m => `
+      <div class="overlap-row">
+        <span style="font-size:.82rem">${m.r1} × ${m.r2}</span>
+        <div class="overlap-bar-wrap">
+          <div class="overlap-bar" style="width:${m.rate}px"></div>
+          <span style="font-size:.8rem;color:var(--muted)">${m.rate}%（${m.overlap}款）</span>
+        </div>
+      </div>`).join('');
+  // 独热
+  const excl = data.exclusive || {};
+  document.getElementById('cross-exclusive').innerHTML = Object.entries(excl).map(([code, info]) => `
+    <div class="card" style="padding:14px">
+      <div style="font-weight:700;margin-bottom:10px">${info.label} <span class="badge badge-steam">${info.count}款</span></div>
+      <div class="tag-list">${info.games.slice(0,10).map(n=>`<span class="tag">${n}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ─── 4. Watch List ───
+async function loadWatchlist() {
+  const data = await fetch('/api/monitor/watchlist').then(r=>r.json());
+  if (!data.length) {
+    document.getElementById('watchlistContent').innerHTML = '<p class="empty-tip">暂无关注游戏，在上方输入框添加</p>'; return;
+  }
+  document.getElementById('watchlistContent').innerHTML = data.map(g => {
+    const chg = g.change || 0;
+    const chgStr = chg > 0 ? `<span class="change-up">▲ ${fmtNum(chg)}</span>` : chg < 0 ? `<span class="change-down">▼ ${fmtNum(Math.abs(chg))}</span>` : '<span style="color:var(--muted)">—</span>';
+    const rk = g.rank_change > 0 ? `<span class="change-up">▲${g.rank_change}</span>` : g.rank_change < 0 ? `<span class="change-down">▼${Math.abs(g.rank_change)}</span>` : '';
+    return `<div class="watch-item">
+      <div>
+        <div class="watch-name">${g.name}</div>
+        <div style="font-size:.75rem;color:var(--muted)">${g.status} ${g.in_chart ? '· 排名 #'+(g.rank||'-') : ''}</div>
+      </div>
+      <div class="watch-stats">
+        <div>在线 <strong>${fmtNum(g.current)}</strong> ${chgStr}</div>
+        ${rk ? '<div>排名变动 '+rk+'</div>' : ''}
+        <button onclick="removeWatch('${g.name.replace(/'/g,"\\'")}',this)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addWatch() {
+  const name = document.getElementById('watchInput').value.trim();
+  if (!name) return;
+  const res = await fetch('/api/monitor/watchlist', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name})
+  }).then(r=>r.json());
+  if (res.ok) {
+    document.getElementById('watchInput').value = '';
+    loadWatchlist();
+  } else {
+    alert(res.error || '添加失败');
+  }
+}
+
+async function removeWatch(name, btn) {
+  btn.textContent = '...';
+  await fetch('/api/monitor/watchlist/'+encodeURIComponent(name), {method:'DELETE'});
+  loadWatchlist();
+}
+
+// ─── 5. 榜单 Diff ───
+async function loadDiff() {
+  const region = document.getElementById('diffRegion').value;
+  const platform = document.getElementById('diffPlatform').value;
+  document.getElementById('diffMeta').textContent = '对比中...';
+  const data = await fetch(`/api/monitor/diff?region=${region}&platform=${platform}`).then(r=>r.json());
+  if (data.error) {
+    document.getElementById('diffMeta').textContent = '⚠️ ' + data.error; return;
+  }
+  document.getElementById('diffMeta').textContent = `${data.prev_ts} → ${data.latest_ts}`;
+  document.getElementById('diff-new-count').textContent = data.total_new;
+  document.getElementById('diff-gone-count').textContent = data.total_gone;
+
+  const mkList = (arr, fields) => arr.length
+    ? arr.map(g => `<div class="overlap-row"><span>${g.name}</span><span style="color:var(--muted)">${fields(g)}</span></div>`).join('')
+    : '<p class="empty-tip">无</p>';
+
+  document.getElementById('diff-new').innerHTML  = mkList(data.new_entries, g=>`#${g.rank||'?'} 在线${fmtNum(g.current)}`);
+  document.getElementById('diff-gone').innerHTML = mkList(data.disappeared, g=>`上次 #${g.prev_rank||'?'}`);
+  document.getElementById('diff-up').innerHTML   = mkList(data.rank_up,     g=>`#${g.prev_rank}→#${g.rank} <span class="change-up">▲${g.delta}</span>`);
+  document.getElementById('diff-down').innerHTML = mkList(data.rank_down,   g=>`#${g.prev_rank}→#${g.rank} <span class="change-down">▼${Math.abs(g.delta)}</span>`);
+}
+
+// ─── 6. 数据质量 ───
+async function loadQuality() {
+  document.getElementById('qualityTable').innerHTML = '<p class="empty-tip"><span class="spinner"></span> 检测中...</p>';
+  const data = await fetch('/api/monitor/quality').then(r=>r.json());
+  const freshLabel = {'fresh':'✅ 新鲜','stale':'⚠️ 较旧','old':'❌ 过期','no_data':'— 无数据'};
+  const freshMin = m => m == null ? '-' : m < 60 ? m+'分钟前' : (m/60).toFixed(1)+'小时前';
+  document.getElementById('qualityTable').innerHTML =
+    `<div class="quality-row quality-header"><span>数据源</span><span>最后采集</span><span>新鲜度</span><span>总记录</span><span>缺失字段</span><span>重复数</span></div>` +
+    data.sources.map(s => `
+      <div class="quality-row">
+        <span>${s.source}</span>
+        <span style="color:var(--muted);font-size:.78rem">${s.last_ts}</span>
+        <span class="${s.freshness_status}">${freshLabel[s.freshness_status] || '-'} ${freshMin(s.freshness_minutes)}</span>
+        <span>${s.total_records}</span>
+        <span style="color:${(s.missing_name||0)+(s.missing_rank||0)>0?'var(--red)':'var(--green)'}">
+          名称:${s.missing_name||0} 排名:${s.missing_rank||0}
+        </span>
+        <span style="color:${s.duplicates>0?'var(--orange)':'var(--green)'}">${s.duplicates||0}</span>
+      </div>`).join('');
+}
+
+// ─── 监控子 Tab 切换 ───
+function switchMonitor(name) {
+  const tabs = ['anomaly','trend','cross','diff','quality'];
+  document.querySelectorAll('#tab-monitor .region-tab').forEach((b,i) =>
+    b.classList.toggle('active', tabs[i] === name));
+  document.querySelectorAll('.monitor-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'monitor-' + name));
+  // 按需加载
+  if (name === 'anomaly') loadAnomalies();
+  if (name === 'trend')   loadTrends();
+  if (name === 'cross')   loadCross();
+  if (name === 'diff')    loadDiff();
+  if (name === 'quality') loadQuality();
+}
+
+// ─── Watch List ───
+async function loadWatchList() {
+  const data = await fetch('/api/monitor/watchlist').then(r=>r.json());
+  document.getElementById('watchTable').innerHTML = data.length
+    ? data.map(w => {
+        const rankTag = w.rank_delta > 0 ? `<span style="color:var(--green)">↑${w.rank_delta}</span>`
+                      : w.rank_delta < 0 ? `<span style="color:var(--red)">↓${Math.abs(w.rank_delta)}</span>` : '-';
+        const pctTag  = w.player_delta_pct != null
+          ? `<span style="color:${w.player_delta_pct>=0?'var(--green)':'var(--red)'}">
+              ${w.player_delta_pct>=0?'+':''}${w.player_delta_pct}%</span>` : '-';
+        return `<tr>
+          <td>${w.name} ${!w.in_top50 ? '<span style="color:var(--muted);font-size:.75rem">（未上榜）</span>' : ''}</td>
+          <td class="rank-num">${w.rank || '-'}</td>
+          <td class="num-cell">${fmtNum(w.current_players)}</td>
+          <td>${rankTag}</td><td>${pctTag}</td>
+          <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:.75rem"
+              onclick="removeWatch('${w.name.replace(/'/g,"\\'")}')">移除</button></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="empty-tip">暂无关注游戏，输入游戏名称添加</td></tr>';
+}
+
+async function addWatch() {
+  const input = document.getElementById('watchInput');
+  const name = input.value.trim();
+  if (!name) return;
+  await fetch('/api/monitor/watchlist', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name})
+  });
+  input.value = '';
+  loadWatchList();
+}
+
+async function removeWatch(name) {
+  await fetch('/api/monitor/watchlist/' + encodeURIComponent(name), {method:'DELETE'});
+  loadWatchList();
+}
+
+// ─── 异常检测 ───
+async function loadAnomalies() {
+  const d = await fetch('/api/monitor/anomalies').then(r=>r.json());
+  const empty = n => `<tr><td colspan="${n}" class="empty-tip">暂无数据（需多次采集后比较）</td></tr>`;
+  document.getElementById('m-surge').innerHTML = d.surge.length
+    ? d.surge.map(g=>`<tr><td>${g.name}</td>
+        <td style="color:var(--green)">+${g.change_pct}%</td>
+        <td class="num-cell">${fmtNum(g.current)}</td></tr>`).join('') : empty(3);
+  document.getElementById('m-drop').innerHTML = d.drop.length
+    ? d.drop.map(g=>`<tr><td>${g.name}</td>
+        <td style="color:var(--red)">${g.change_pct}%</td>
+        <td class="num-cell">${fmtNum(g.current)}</td></tr>`).join('') : empty(3);
+  document.getElementById('m-new').innerHTML = d.new_entry.length
+    ? d.new_entry.map(g=>`<tr><td>${g.name}</td>
+        <td class="rank-num">#${g.rank}</td>
+        <td class="num-cell">${fmtNum(g.players)}</td></tr>`).join('') : empty(3);
+  document.getElementById('m-gone').innerHTML = d.disappeared.length
+    ? d.disappeared.map(g=>`<tr><td>${g.name}</td>
+        <td class="rank-num">#${g.prev_rank}</td></tr>`).join('') : empty(2);
+  document.getElementById('m-jump').innerHTML = d.rank_jump.length
+    ? d.rank_jump.map(g=>`<tr><td>${g.name}</td>
+        <td class="rank-num">#${g.prev_rank}</td>
+        <td class="rank-num">#${g.cur_rank}</td>
+        <td style="color:${g.delta>0?'var(--green)':'var(--red)'}">
+          ${g.delta>0?'↑'+g.delta:'↓'+Math.abs(g.delta)}</td></tr>`).join('') : empty(4);
+}
+
+// ─── 趋势分析 ───
+async function loadTrends() {
+  const d = await fetch('/api/monitor/trends').then(r=>r.json());
+  const empty = `<tr><td colspan="4" class="empty-tip">数据不足（需 3 次以上采集）</td></tr>`;
+  document.getElementById('m-rising').innerHTML = d.rising.length
+    ? d.rising.map(g=>`<tr><td>${g.name}</td>
+        <td style="color:var(--green)">+${g.growth_pct}%</td></tr>`).join('') : empty;
+  document.getElementById('m-falling').innerHTML = d.falling.length
+    ? d.falling.map(g=>`<tr><td>${g.name}</td>
+        <td style="color:var(--red)">-${g.drop_pct}%</td></tr>`).join('') : empty;
+  document.getElementById('m-growth').innerHTML = d.fastest_growth.length
+    ? d.fastest_growth.map(g=>`<tr><td>${g.name}</td>
+        <td style="color:${g.rate>=0?'var(--green)':'var(--red)'}">
+          ${g.rate>=0?'+':''}${g.rate}%</td>
+        <td style="color:var(--muted);font-size:.8rem">${fmtNum(g.start)}→${fmtNum(g.end)}</td></tr>`).join('') : empty;
+  document.getElementById('m-week').innerHTML = d.week_cmp.length
+    ? d.week_cmp.map(g=>`<tr><td>${g.name}</td>
+        <td class="num-cell">${fmtNum(g.current)}</td>
+        <td class="num-cell">${fmtNum(g.last_week)}</td>
+        <td style="color:${g.pct>=0?'var(--green)':'var(--red)'}">
+          ${g.pct>=0?'+':''}${g.pct}%</td></tr>`).join('') : empty;
+}
+
+// ─── 跨区对比 ───
+async function loadCross() {
+  const d = await fetch('/api/monitor/cross_region').then(r=>r.json());
+  const empty = n => `<tr><td colspan="${n}" class="empty-tip">暂无数据</td></tr>`;
+  document.getElementById('m-multihot').innerHTML = d.multi_hot_steam.length
+    ? d.multi_hot_steam.map(g=>`<tr><td>${g.name}</td>
+        <td style="font-size:.8rem">${g.regions.join(' ')}</td></tr>`).join('') : empty(2);
+  document.getElementById('m-mobilehot').innerHTML = d.multi_hot_mobile.length
+    ? d.multi_hot_mobile.map(g=>`<tr><td>${g.name}</td>
+        <td style="font-size:.8rem">${g.regions.join(' ')}</td></tr>`).join('') : empty(2);
+  document.getElementById('m-overlap').innerHTML = d.overlap_matrix.length
+    ? d.overlap_matrix.map(g=>`<tr>
+        <td style="font-size:.85rem">${g.r1} × ${g.r2}</td>
+        <td class="rank-num">${g.overlap}</td>
+        <td><div class="bar-wrap"><div class="bar bar-steam" style="width:${g.rate}px"></div>
+            <span>${g.rate}%</span></div></td></tr>`).join('') : empty(3);
+  const excl = d.exclusive_steam || {};
+  document.getElementById('m-exclusive').innerHTML = Object.entries(excl)
+    .map(([region, games]) => `<div><strong>${region}</strong>：${games.slice(0,5).join('、') || '无'}</div>`)
+    .join('') || '暂无数据';
+}
+
+// ─── 榜单 Diff ───
+async function loadDiff() {
+  const region = document.getElementById('diffRegion')?.value || 'global';
+  const platform = document.getElementById('diffPlatform')?.value || 'steam';
+  const d = await fetch(`/api/monitor/diff?region=${region}&platform=${platform}`).then(r=>r.json());
+  const empty = n => `<tr><td colspan="${n}" class="empty-tip">暂无变化（需多次采集）</td></tr>`;
+  if (d.time_cur) {
+    document.getElementById('diffTimeInfo').textContent =
+      `对比：${d.time_prev?.slice(0,16)||'?'} → ${d.time_cur?.slice(0,16)||'?'}`;
+  }
+  document.getElementById('d-new').innerHTML = d.new_entry.length
+    ? d.new_entry.map(g=>`<tr><td>${g.name}</td><td class="rank-num">#${g.rank}</td></tr>`).join('') : empty(2);
+  document.getElementById('d-gone').innerHTML = d.disappeared.length
+    ? d.disappeared.map(g=>`<tr><td>${g.name}</td><td class="rank-num">#${g.prev_rank}</td></tr>`).join('') : empty(2);
+  document.getElementById('d-rise').innerHTML = d.rise.length
+    ? d.rise.map(g=>`<tr><td>${g.name}</td><td class="rank-num">#${g.rank}</td>
+        <td style="color:var(--green)">↑${g.delta}</td></tr>`).join('') : empty(3);
+  document.getElementById('d-fall').innerHTML = d.fall.length
+    ? d.fall.map(g=>`<tr><td>${g.name}</td><td class="rank-num">#${g.rank}</td>
+        <td style="color:var(--red)">↓${g.delta}</td></tr>`).join('') : empty(3);
+}
+
+// ─── 数据质量 ───
+async function loadQuality() {
+  const d = await fetch('/api/monitor/quality').then(r=>r.json());
+  document.getElementById('qualityGrid').innerHTML = Object.entries(d).map(([label, q]) => `
+    <div class="card">
+      <h3>${label === 'Steam' ? '🕹️' : '📱'} ${label} 数据质量</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:var(--muted);font-size:.85rem">数据新鲜度</span>
+          <span class="badge" style="background:${q.freshness_ok?'var(--green)22':'var(--red)22'};
+            color:${q.freshness_ok?'var(--green)':'var(--red)'}">
+            ${q.freshness_ok ? '✅ 新鲜' : '⚠️ 过期'} ${q.freshness_min != null ? q.freshness_min+'分钟前' : '未知'}
+          </span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--muted);font-size:.85rem">总记录数</span>
+          <strong>${q.total.toLocaleString()}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--muted);font-size:.85rem">完整性</span>
+          <span style="color:${q.completeness>=95?'var(--green)':q.completeness>=80?'var(--orange)':'var(--red)'}">
+            ${q.completeness}%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--muted);font-size:.85rem">字段缺失（名称/排名）</span>
+          <span style="color:${(q.miss_name+q.miss_rank)===0?'var(--green)':'var(--orange)'}">
+            ${q.miss_name + q.miss_rank} 条</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--muted);font-size:.85rem">重复游戏</span>
+          <span style="color:${q.duplicates===0?'var(--green)':'var(--orange)'}">
+            ${q.duplicates} 条</span>
+        </div>
+        <div style="color:var(--muted);font-size:.75rem;margin-top:4px">
+          最后采集：${q.last_fetch ? q.last_fetch.slice(0,16).replace('T',' ') : '未知'}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── PPT 生成 ───
+async function generatePPT() {
+  const name = document.getElementById('pptGameName').value.trim();
+  const days = document.getElementById('pptDays').value;
+  if (!name) { alert('请输入游戏名称'); return; }
+
+  const btn = document.getElementById('pptBtn');
+  const status = document.getElementById('pptStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ 生成中...';
+  status.innerHTML = '<span class="spinner"></span> 正在生成 PPT，请稍候（约 5-10 秒）...';
+
+  try {
+    const res = await fetch(`/api/ppt/generate?name=${encodeURIComponent(name)}&days=${days}`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || '生成失败');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    a.href = url;
+    a.download = `${name}_数据分析报告_${dateStr}.pptx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    status.innerHTML = '✅ PPT 已下载！（共 6 页）';
+  } catch(e) {
+    status.innerHTML = `❌ 生成失败：${e.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🎯 生成 PPT';
+  }
+}
+
+// 初始化
+loadAll();
+loadWatchList();
+loadAnomalies();
+setInterval(loadAll, 300000); // 每 5 分钟自动刷新
+</script>
+</body>
+</html>

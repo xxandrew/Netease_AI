@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>界面易用性分析报告 — 双人成行玩法手游HUD</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; background:#f5f6fa; color:#2d3436; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460); color:#fff; padding:32px 40px; border-bottom:3px solid #e74c3c; }
+  .header h1 { font-size:24px; margin-bottom:8px; }
+  .header .meta { font-size:13px; opacity:.8; line-height:2; }
+  .header .batch-tag { display:inline-block; background:rgba(231,76,60,.85); color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:20px; margin-bottom:10px; letter-spacing:.5px; }
+
+  /* Layout */
+  .container { max-width:1100px; margin:0 auto; padding:32px 20px; }
+
+  /* Summary Box */
+  .summary-box { background:#fff; border-radius:12px; padding:28px 32px; margin-bottom:24px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .total-score { font-size:80px; font-weight:bold; text-align:center; padding:12px 0; color:#e17055; }
+  .score-label-main { text-align:center; color:#636e72; margin-bottom:24px; font-size:14px; }
+  .score-bars { margin-bottom:16px; }
+  .score-row { display:flex; align-items:center; margin:8px 0; font-size:13px; gap:8px; }
+  .score-label { width:120px; color:#636e72; flex-shrink:0; }
+  .score-bar-wrap { flex:1; background:#f0f0f0; border-radius:4px; height:8px; overflow:hidden; }
+  .score-bar-fill { height:100%; border-radius:4px; }
+  .score-num { width:36px; text-align:right; font-weight:bold; font-size:13px; }
+  .overall-summary { background:#f0f8ff; border-left:4px solid #74b9ff; padding:12px 16px; border-radius:4px; font-size:14px; margin-top:16px; line-height:1.7; }
+
+  /* Key Insight Banner */
+  .key-insight { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+  .insight-card { flex:1; min-width:200px; border-radius:10px; padding:18px 20px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .insight-card.red   { background:#fff5f5; border-left:4px solid #e74c3c; }
+  .insight-card.orange{ background:#fff8f0; border-left:4px solid #f39c12; }
+  .insight-card.green { background:#f0fff4; border-left:4px solid #27ae60; }
+  .insight-card h4 { font-size:13px; color:#636e72; margin-bottom:6px; }
+  .insight-card p  { font-size:15px; font-weight:bold; }
+  .insight-card .big-num { font-size:36px; font-weight:900; line-height:1; margin-bottom:4px; }
+
+  /* Section Title */
+  .section-title { font-size:18px; font-weight:bold; margin:32px 0 16px; padding-left:12px; border-left:4px solid #2d3436; }
+
+  /* Chart Section */
+  .chart-card { background:#fff; border-radius:12px; padding:24px 28px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .chart-row { display:flex; align-items:center; margin:7px 0; font-size:13px; gap:8px; }
+  .chart-name { width:160px; flex-shrink:0; color:#2d3436; font-size:12px; }
+  .chart-bar-wrap { flex:1; background:#f0f0f0; border-radius:4px; height:20px; overflow:hidden; position:relative; }
+  .chart-bar-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:11px; color:#fff; font-weight:600; }
+  .chart-score { width:36px; text-align:right; font-weight:bold; }
+
+  /* Interface Analysis Cards */
+  .iface-card { background:#fff; border-radius:12px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); overflow:hidden; }
+  .iface-header { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid #f0f0f0; }
+  .iface-title { font-size:16px; font-weight:bold; }
+  .iface-score-badge { font-size:26px; font-weight:900; }
+  .iface-body { padding:16px 24px; }
+  .problem-banner { border-radius:6px; padding:10px 14px; font-size:13px; font-weight:600; margin-bottom:14px; }
+  .banner-p0 { background:#ffeaea; color:#c0392b; border-left:4px solid #e74c3c; }
+  .banner-p1 { background:#fff8e1; color:#b7791f; border-left:4px solid #f39c12; }
+  .banner-p2 { background:#e8f4fd; color:#1a5276; border-left:4px solid #3498db; }
+  .problem-list { list-style:none; }
+  .problem-list li { padding:5px 0; font-size:13px; line-height:1.6; display:flex; align-items:flex-start; gap:8px; }
+  .tag-p0 { background:#f8d7da; color:#721c24; padding:2px 7px; border-radius:10px; font-weight:bold; font-size:11px; flex-shrink:0; }
+  .tag-p1 { background:#fff3cd; color:#856404; padding:2px 7px; border-radius:10px; font-weight:bold; font-size:11px; flex-shrink:0; }
+  .tag-p2 { background:#d1ecf1; color:#0c5460; padding:2px 7px; border-radius:10px; font-weight:bold; font-size:11px; flex-shrink:0; }
+  .tag-ok { background:#d4edda; color:#155724; padding:2px 7px; border-radius:10px; font-weight:bold; font-size:11px; flex-shrink:0; }
+
+  /* Dim Card */
+  .dim-card { background:#fff; border-radius:12px; padding:24px 28px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .dim-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #f0f0f0; padding-bottom:12px; }
+  .dim-name { font-size:17px; font-weight:bold; }
+  .dim-meta { display:flex; align-items:center; gap:12px; }
+  .dim-score { font-size:28px; font-weight:bold; }
+  .dim-badge { font-size:11px; padding:3px 8px; border-radius:20px; font-weight:600; }
+  .badge-good   { background:#d4edda; color:#155724; }
+  .badge-warn   { background:#fff3cd; color:#856404; }
+  .badge-danger { background:#f8d7da; color:#721c24; }
+
+  /* Tables */
+  .detail-table { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+  .detail-table th { background:#f8f9fa; padding:9px 14px; text-align:left; border:1px solid #e9ecef; font-weight:600; color:#495057; }
+  .detail-table td { padding:9px 14px; border:1px solid #e9ecef; }
+  .detail-table tr:nth-child(even) td { background:#fafafa; }
+  .status-ok   { color:#27ae60; font-weight:600; }
+  .status-warn { color:#f39c12; font-weight:600; }
+  .status-bad  { color:#e74c3c; font-weight:600; }
+
+  /* Priority Table */
+  .priority-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  .priority-table th { background:#f8f9fa; padding:9px 14px; text-align:left; border:1px solid #e9ecef; font-weight:600; }
+  .priority-table td { padding:9px 14px; border:1px solid #e9ecef; vertical-align:top; line-height:1.6; }
+  .cost-l { color:#27ae60; font-weight:600; }
+  .cost-m { color:#f39c12; font-weight:600; }
+  .cost-h { color:#e74c3c; font-weight:600; }
+
+  /* Two-col */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:16px; }
+  @media(max-width:640px){ .two-col{ grid-template-columns:1fr; } }
+  .issues-section h5, .sugg-section h5 { font-size:13px; color:#636e72; margin-bottom:8px; font-weight:600; }
+  .issues-section ul, .sugg-section ul { list-style:none; }
+  li.issue { padding:5px 0; color:#e17055; font-size:13px; line-height:1.5; }
+  li.ok    { padding:5px 0; color:#00b894; font-size:13px; }
+  li.sugg  { padding:5px 0; color:#2980b9; font-size:13px; line-height:1.5; }
+
+  /* Quadrant Matrix */
+  .quadrant-wrap { display:grid; grid-template-columns:1fr 1fr; gap:3px; background:#dfe6e9; border-radius:8px; overflow:hidden; margin-top:12px; }
+  .quadrant { padding:20px; background:#fff; }
+  .quadrant h5 { font-size:13px; font-weight:700; margin-bottom:10px; }
+  .quadrant ul { list-style:none; font-size:12px; line-height:1.8; color:#636e72; }
+  .q-tl { border-top-left-radius:8px; }
+  .q-tr { border-top-right-radius:8px; background:#fff5f5; }
+  .q-bl { border-bottom-left-radius:8px; background:#f0fff4; }
+  .q-br { border-bottom-right-radius:8px; }
+  .q-axis-label { text-align:center; font-size:11px; color:#b2bec3; margin:4px 0; }
+
+  /* Co-op Special Section */
+  .coop-card { background: linear-gradient(135deg,#1a1a2e,#16213e); color:#fff; border-radius:12px; padding:24px 28px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,0,0,.2); }
+  .coop-card .coop-title { font-size:17px; font-weight:bold; margin-bottom:16px; color:#74b9ff; }
+  .coop-issue { background:rgba(255,255,255,.08); border-left:4px solid #e74c3c; border-radius:0 6px 6px 0; padding:12px 16px; margin-bottom:12px; }
+  .coop-issue.warn { border-left-color:#f39c12; }
+  .coop-issue.good { border-left-color:#27ae60; }
+  .coop-issue h6 { font-size:13px; font-weight:700; margin-bottom:4px; color:#dfe6e9; }
+  .coop-issue p  { font-size:12px; color:#b2bec3; line-height:1.6; }
+
+  /* Highlights */
+  .highlight-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:12px; }
+  @media(max-width:640px){ .highlight-grid{ grid-template-columns:1fr; } }
+  .highlight-item { background:#fff; border-radius:10px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.06); border-top:3px solid #27ae60; }
+  .highlight-item .icon { font-size:24px; margin-bottom:8px; }
+  .highlight-item h6 { font-size:13px; font-weight:700; margin-bottom:6px; }
+  .highlight-item p  { font-size:12px; color:#636e72; line-height:1.6; }
+
+  /* Footer */
+  .footer { text-align:center; color:#b2bec3; font-size:12px; padding:32px 20px; line-height:1.8; border-top:1px solid #eee; margin-top:32px; }
+</style>
+</head>
+<body>
+
+<!-- ====== HEADER ====== -->
+<div class="header">
+  <div class="batch-tag">📊 批量分析模式 · 识别设计稿 13/18 张</div>
+  <h1>🎮 双人成行玩法手游 HUD 界面易用性分析报告</h1>
+  <div class="meta">
+    分析对象：双人成行玩法手游全界面HUD设计文档（13张有效设计稿）&nbsp;|&nbsp;
+    分辨率：1920×1080 &nbsp;|&nbsp;
+    平台：Mobile 横屏 &nbsp;|&nbsp;
+    分析时间：2026-04-16 &nbsp;|&nbsp;
+    分析框架：7维度易用性评估 v1.0
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ====== 综合评分 ====== -->
+  <div class="summary-box">
+    <div class="total-score">63</div>
+    <div class="score-label-main">综合易用性得分（加权平均，满分 100）</div>
+    <div class="score-bars">
+      <div class="score-row">
+        <span class="score-label">热区尺寸 ×20%</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:82%;background:#27ae60;"></div></div>
+        <span class="score-num" style="color:#27ae60">82</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">费茨定律 ×20%</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:68%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">68</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">热区间距 ×15%</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:55%;background:#e74c3c;"></div></div>
+        <span class="score-num" style="color:#e74c3c">55</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">热区重叠 ×15%</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:58%;background:#e74c3c;"></div></div>
+        <span class="score-num" style="color:#e74c3c">58</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">认知负荷 ×15%</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:52%;background:#e74c3c;"></div></div>
+        <span class="score-num" style="color:#e74c3c">52</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">视野遮挡 ×10%</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:60%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">60</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">拇指热区 ×5%</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:70%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">70</span>
+      </div>
+    </div>
+    <div class="overall-summary">
+      📝 <strong>AI 整体评价：</strong>13张设计稿综合易用性得分 <strong>63分</strong>，处于"需要优化"级别。
+      基础HUD热区尺寸达标良好，但Boss战界面大型头像造成严重视野遮挡（P0），多状态叠加时认知负荷超标显著。
+      双人协作场景下，双方HUD元素存在中央屏幕区域挤压风险。特殊状态激活提示（赤石系列）反馈清晰是本次分析最突出的设计亮点。
+      建议优先修复 <strong>5项P0问题</strong>，重点聚焦Boss战视野遮挡与多状态叠加布局重排。
+    </div>
+  </div>
+
+  <!-- ====== 关键指标快览 ====== -->
+  <div class="key-insight">
+    <div class="insight-card red">
+      <h4>🔴 P0 问题数</h4>
+      <div class="big-num" style="color:#e74c3c;">5</div>
+      <p>Boss视野遮挡 / 状态叠加热区重叠 / 追踪标记遮挡 / 摇杆间距不足 / 封闭入场按键缺失</p>
+    </div>
+    <div class="insight-card orange">
+      <h4>🟡 最低分界面</h4>
+      <div class="big-num" style="color:#f39c12;">42</div>
+      <p>boss击 与 界面叠加<br><span style="font-size:12px;font-weight:400;">多维度同时触发，体验最差</span></p>
+    </div>
+    <div class="insight-card green">
+      <h4>✅ 设计亮点数</h4>
+      <div class="big-num" style="color:#27ae60;">6</div>
+      <p>赤石激活反馈 / 摇杆区域合理 / 追踪标记色彩醒目 / 双人头像分离 / 物件标注可读性 / 语音提示视觉化</p>
+    </div>
+  </div>
+
+  <!-- ====== 各界面得分柱状图 ====== -->
+  <div class="section-title">📊 各界面得分总览</div>
+  <div class="chart-card">
+    <div class="chart-row"><span class="chart-name">① 基础HUD</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:74%;background:#27ae60;">74</div></div><span class="chart-score" style="color:#27ae60">74</span></div>
+    <div class="chart-row"><span class="chart-name">② 近距离追踪</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:68%;background:#f39c12;">68</div></div><span class="chart-score" style="color:#f39c12">68</span></div>
+    <div class="chart-row"><span class="chart-name">③ 二用首次激活</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:65%;background:#f39c12;">65</div></div><span class="chart-score" style="color:#f39c12">65</span></div>
+    <div class="chart-row"><span class="chart-name">④ 战场物件标注</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:70%;background:#f39c12;">70</div></div><span class="chart-score" style="color:#f39c12">70</span></div>
+    <div class="chart-row"><span class="chart-name">⑤ 四者与平均值</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:58%;background:#e74c3c;">58</div></div><span class="chart-score" style="color:#e74c3c">58</span></div>
+    <div class="chart-row"><span class="chart-name">⑥ 赤上下线</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:62%;background:#f39c12;">62</div></div><span class="chart-score" style="color:#f39c12">62</span></div>
+    <div class="chart-row"><span class="chart-name">⑦ 长传遥控</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:66%;background:#f39c12;">66</div></div><span class="chart-score" style="color:#f39c12">66</span></div>
+    <div class="chart-row"><span class="chart-name">⑧ 以遮盖</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:67%;background:#f39c12;">67</div></div><span class="chart-score" style="color:#f39c12">67</span></div>
+    <div class="chart-row"><span class="chart-name">⑨ boss击</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:48%;background:#e74c3c;">48</div></div><span class="chart-score" style="color:#e74c3c">48</span></div>
+    <div class="chart-row"><span class="chart-name">⑩ boss击+界面叠加</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:42%;background:#e74c3c;">42</div></div><span class="chart-score" style="color:#e74c3c">42</span></div>
+    <div class="chart-row"><span class="chart-name">⑪ 赤石万能之力量</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:72%;background:#f39c12;">72</div></div><span class="chart-score" style="color:#f39c12">72</span></div>
+    <div class="chart-row"><span class="chart-name">⑫ 赤石封闭式入场</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:55%;background:#e74c3c;">55</div></div><span class="chart-score" style="color:#e74c3c">55</span></div>
+    <div class="chart-row"><span class="chart-name">⑬ 语时触发提示</span><div class="chart-bar-wrap"><div class="chart-bar-fill" style="width:69%;background:#f39c12;">69</div></div><span class="chart-score" style="color:#f39c12">69</span></div>
+  </div>
+
+</div><!-- end chart section -->
+
+<!-- ====== 逐张界面分析 ====== -->
+<div class="container">
+<div class="section-title">🔍 逐张界面分析（共 13 张）</div>
+
+<!-- 界面1：基础HUD -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">① 基础HUD — 初始状态</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">含摇杆 + 右下角按键组 + 左上角双人头像</span>
+    </div>
+    <span class="iface-score-badge" style="color:#27ae60">74</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：双人头像占据左上角约 18% 屏幕空间，与摇杆区域形成视觉竞争</div>
+    <ul class="problem-list">
+      <li><span class="tag-ok">OK</span> 虚拟摇杆尺寸约 200dp，远超 44dp 标准，操作精度良好</li>
+      <li><span class="tag-ok">OK</span> 右下角按键组集中在拇指舒适区，高频操作布局合理</li>
+      <li><span class="tag-p1">P1</span> 左右摇杆与按键区热区间距约 15px，快速操作易误触边缘</li>
+      <li><span class="tag-p1">P1</span> 左上角双人头像血条/状态栏与摇杆操作区存在视觉干扰，信息层级不清晰</li>
+      <li><span class="tag-p2">P2</span> 右侧按键数量建议不超过5个，当前配置处于米勒定律上限</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面2：近距离追踪 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">② 近距离追踪</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">出现蓝色追踪标记/光效叠加</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">68</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p0">❌ P0 问题：蓝色追踪标记叠加在角色中央区域，遮挡约 12% 核心战场视野</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 追踪光效标记出现在屏幕中央，遮挡玩家与队友角色，战斗判断受阻</li>
+      <li><span class="tag-p1">P1</span> 追踪激活时无明显触觉/音效反馈区分，依赖视觉唯一通道，认知负荷增加</li>
+      <li><span class="tag-p1">P1</span> 蓝色标记与部分场景背景色相近，低光环境可读性下降</li>
+      <li><span class="tag-ok">OK</span> 追踪状态下摇杆热区保持正常，操作不受影响</li>
+      <li><span class="tag-p2">P2</span> 建议追踪标记移至角色头顶或边缘，避免遮挡操作视野</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面3：二用首次激活 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">③ 二用首次激活</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">特殊能力首次使用引导状态</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">65</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：首次激活引导弹层遮挡右侧操作区，玩家无法边看引导边操作</div>
+    <ul class="problem-list">
+      <li><span class="tag-p1">P1</span> 首次激活引导UI未考虑操作连贯性，新手引导与战斗操作空间存在冲突</li>
+      <li><span class="tag-p1">P1</span> 激活反馈动效过强（全屏闪光），短暂致盲效果影响战斗连贯性</li>
+      <li><span class="tag-p2">P2</span> 「首次激活」文字提示字号偏小（估计 10px），移动端可读性不足</li>
+      <li><span class="tag-ok">OK</span> 能力图标在按键区高亮提示清晰，玩家可快速定位</li>
+      <li><span class="tag-p2">P2</span> 建议引导文字改为气泡样式，靠近对应按键显示，不阻断操作流</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面4：战场物件标注 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">④ 战场物件标注</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">场景内出现可交互物件标注</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">70</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：多物件同时标注时（3个以上），标注文字重叠，认知负荷达峰值</div>
+    <ul class="problem-list">
+      <li><span class="tag-ok">OK</span> 物件标注采用高对比色（黄色/白色），在复杂背景下可读性良好</li>
+      <li><span class="tag-ok">OK</span> 标注图标尺寸约 60dp，满足触摸热区最低标准</li>
+      <li><span class="tag-p1">P1</span> 3个以上物件同时标注时，标注框互相重叠，难以准确点击目标物件</li>
+      <li><span class="tag-p1">P1</span> 物件标注消失时机不一致，部分标注残留导致用户认知混淆</li>
+      <li><span class="tag-p2">P2</span> 建议对重叠标注实施优先级排序，仅显示距离最近的2个物件标注</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面5：四者与平均值 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑤ 四者与平均值</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">数据对比统计面板</span>
+    </div>
+    <span class="iface-score-badge" style="color:#e74c3c">58</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p0">❌ P0 问题：统计面板出现时占据屏幕中央约 40%，完全遮挡战斗操作视野</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 数据面板为全模态展示，出现期间无法进行游戏操作，破坏战斗流</li>
+      <li><span class="tag-p1">P1</span> 面板内数据字号约 11px，移动端 1920×1080 下阅读困难</li>
+      <li><span class="tag-p1">P1</span> 4列数据对比布局在移动端横屏下信息密度过高，超出米勒定律 7±2 限制</li>
+      <li><span class="tag-p1">P1</span> 关闭按钮位置不明显，玩家不易快速退出面板</li>
+      <li><span class="tag-p2">P2</span> 建议将统计面板改为半透明侧边栏或战斗结束后展示，避免打断操作</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面6：赤上下线 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑥ 赤上下线</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">上下边界危险提示</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">62</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：上下边界红线提示与摇杆区域视觉融合，玩家可能误以为是UI错误</div>
+    <ul class="problem-list">
+      <li><span class="tag-p1">P1</span> 边界提示红线样式与游戏内"危险"视觉语言不统一，缺乏一致性</li>
+      <li><span class="tag-p1">P1</span> 上边界提示出现位置与左上角头像区重叠，信息被遮挡</li>
+      <li><span class="tag-ok">OK</span> 红色颜色编码选择正确，符合「危险/边界」的认知映射</li>
+      <li><span class="tag-p2">P2</span> 边界提示缺少渐进式强度变化（越近越强），预警提前量不足</li>
+      <li><span class="tag-p2">P2</span> 建议增加屏幕震动反馈配合边界提示，提升多感官提醒效果</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面7：长传遥控 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑦ 长传遥控</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">远程操控特殊状态</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">66</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：遥控状态下新增瞄准UI与原始HUD叠加，同屏元素超过10个</div>
+    <ul class="problem-list">
+      <li><span class="tag-p1">P1</span> 遥控激活后屏幕同时显示「原角色HUD + 遥控目标HUD + 瞄准准星」，三套UI并存</li>
+      <li><span class="tag-p1">P1</span> 遥控状态摇杆控制语义改变（原：移动→变：旋转/瞄准），无明显视觉提示</li>
+      <li><span class="tag-ok">OK</span> 遥控激活按键尺寸充足，长按操作热区面积满足标准</li>
+      <li><span class="tag-p2">P2</span> 遥控状态下原HUD可考虑淡出至30%不透明度，减少干扰</li>
+      <li><span class="tag-p2">P2</span> 建议在摇杆中央增加「遥控中」文字标签，明确当前控制语义</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面8：以遮盖 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑧ 以遮盖</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">遮蔽/隐身特殊状态</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">67</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：遮蔽状态下角色半透明显示与HUD按键半透明样式视觉混淆</div>
+    <ul class="problem-list">
+      <li><span class="tag-p1">P1</span> 角色隐身透明效果与HUD半透明按键在视觉层次上相同，难以区分「UI元素」与「角色状态」</li>
+      <li><span class="tag-p1">P1</span> 遮蔽状态持续计时器位置不固定，频繁跳动引起注意力分散</li>
+      <li><span class="tag-ok">OK</span> 遮蔽状态按键变色提示方向正确（明确的视觉状态反馈）</li>
+      <li><span class="tag-p2">P2</span> 建议遮蔽状态角色改用轮廓线+噪点效果，与HIG半透明UI形成视觉差</li>
+      <li><span class="tag-p2">P2</span> 计时器固定在屏幕顶部中央，不随角色移动</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面9：boss击 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑨ boss击</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">Boss战界面，出现大型Boss头像</span>
+    </div>
+    <span class="iface-score-badge" style="color:#e74c3c">48</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p0">❌ P0 问题：Boss巨型头像（巨大眼睛）占据屏幕上方约 35%，严重遮挡战场纵深视野</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> Boss头像占屏约35%，超过「UI不超过单侧25%」原则，战场纵深判断受损</li>
+      <li><span class="tag-p1">P1</span> Boss血条与普通敌人血条样式相近，优先级区分不足</li>
+      <li><span class="tag-p1">P1</span> Boss战新增的攻击提示UI与原HUD按键区间距不足20px，存在误触风险</li>
+      <li><span class="tag-p1">P1</span> Boss战期间右下角技能按键与Boss攻击范围提示视觉重叠</li>
+      <li><span class="tag-p2">P2</span> 建议Boss头像缩小至屏幕顶部条幅形式（高度≤80px），释放战场视野</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面10：boss击 与 界面叠加 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑩ boss击 与 界面叠加</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">Boss战+特殊状态叠加 — ⚠️ 最差界面</span>
+    </div>
+    <span class="iface-score-badge" style="color:#e74c3c">42</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p0">❌ P0 问题（多项触发）：Boss头像 + 特殊状态提示 + 双人HUD同时叠加，有效视野不足45%</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> Boss头像（35%）+ 状态叠加层（15%）同时占用屏幕，有效战场视野仅约45%，操作极度受阻</li>
+      <li><span class="tag-p0">P0</span> 叠加状态下按键热区发生重叠：技能键与Boss弱点标记热区重叠，触发错乱</li>
+      <li><span class="tag-p1">P1</span> 同屏元素超过13个，远超米勒定律7±2上限，认知负荷达到临界</li>
+      <li><span class="tag-p1">P1</span> 双人协作状态下，P1和P2的状态提示在屏幕中部相互叠加，难以区分各自信息</li>
+      <li><span class="tag-p2">P2</span> 建议设计「Boss战专用UI模式」：自动隐藏非必要元素，仅保留摇杆+核心技能按键</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面11：赤石万能之力量 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑪ 赤石万能之力量（3阶段）</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">特殊力量激活的3个连续阶段</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">72</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：3阶段状态切换过渡时间约0.3s，玩家难以区分当前所处阶段</div>
+    <ul class="problem-list">
+      <li><span class="tag-ok">OK</span> 赤石激活视觉效果强烈（红色光效+粒子），状态反馈极为清晰</li>
+      <li><span class="tag-ok">OK</span> 3阶段采用颜色深度区分（浅红→深红→暗红），方向正确</li>
+      <li><span class="tag-p1">P1</span> 阶段切换动画时间过短，玩家在高压战斗中难以感知阶段变化</li>
+      <li><span class="tag-p1">P1</span> 第3阶段（最强）时全屏红色滤镜影响对敌人的识别</li>
+      <li><span class="tag-p2">P2</span> 建议阶段指示器增加数字标注（1/2/3）或独立进度条，提供明确阶段锚点</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面12：赤石封闭式入场 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑫ 赤石封闭式入场</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">封闭区域进入特殊状态</span>
+    </div>
+    <span class="iface-score-badge" style="color:#e74c3c">55</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p0">❌ P0 问题：封闭区域进入时「确认/取消」操作按键缺失，玩家无法主动选择是否进入</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 入场操作为强制触发，缺少「确认进入」交互步骤，违反用户控制权原则（Nielsen No.3）</li>
+      <li><span class="tag-p1">P1</span> 封闭区域边界提示与「赤上下线」提示视觉语言相同，两种不同语义使用同一视觉编码</li>
+      <li><span class="tag-p1">P1</span> 进入动画期间操作按键灰化但热区未禁用，误触率高</li>
+      <li><span class="tag-ok">OK</span> 封闭区域边界用特殊材质/光效标注，场景可读性尚可</li>
+      <li><span class="tag-p2">P2</span> 建议增加「进入区域？」Toast确认，给予玩家0.5s反应时间</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 界面13：语时触发提示 -->
+<div class="iface-card">
+  <div class="iface-header">
+    <div>
+      <span class="iface-title">⑬ 语时触发提示</span>
+      <span style="font-size:12px;color:#636e72;margin-left:10px;">语言触发提示视觉化界面</span>
+    </div>
+    <span class="iface-score-badge" style="color:#f39c12">69</span>
+  </div>
+  <div class="iface-body">
+    <div class="problem-banner banner-p1">⚠️ 最严重问题：语音提示文字气泡出现在屏幕上半部，与手机状态栏安全区重叠</div>
+    <ul class="problem-list">
+      <li><span class="tag-ok">OK</span> 将语音触发可视化为文字气泡是优秀的无障碍设计决策</li>
+      <li><span class="tag-ok">OK</span> 气泡颜色区分双人（如蓝/橙），角色归属清晰</li>
+      <li><span class="tag-p1">P1</span> 气泡出现位置（屏幕上部20%区域）与手机刘海/安全区冲突，部分机型显示被截断</li>
+      <li><span class="tag-p1">P1</span> 多语音同时触发时（双人同时呼叫），气泡叠加无优先级处理</li>
+      <li><span class="tag-p2">P2</span> 建议气泡位置改为角色头顶上方，与角色位置绑定，同时避免安全区冲突</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- end interfaces section -->
+
+<!-- ====== 跨页面共性问题汇总 ====== -->
+<div class="container">
+<div class="section-title">📋 跨页面共性问题汇总</div>
+<div class="dim-card">
+  <table class="priority-table">
+    <tr>
+      <th width="7%">优先级</th>
+      <th width="22%">问题描述</th>
+      <th width="20%">出现界面</th>
+      <th width="28%">修复建议</th>
+      <th width="8%">开发成本</th>
+      <th width="15%">影响维度</th>
+    </tr>
+    <tr>
+      <td><span class="tag-p0">P0</span></td>
+      <td>Boss大型头像遮挡战场，占屏超标</td>
+      <td>⑨boss击 / ⑩叠加</td>
+      <td>改为顶部条幅形式，高度限制在80px以内，释放核心战场视野</td>
+      <td><span class="cost-m">M</span></td>
+      <td>视野遮挡 / 认知负荷</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p0">P0</span></td>
+      <td>多状态叠加时热区重叠/触发错乱</td>
+      <td>⑩boss击叠加 / ⑦长传遥控</td>
+      <td>为特殊状态设计「UI优先级规则」，叠加时自动隐藏低优先级热区</td>
+      <td><span class="cost-h">H</span></td>
+      <td>热区重叠 / 功能性</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p0">P0</span></td>
+      <td>追踪/状态标记遮挡角色核心视野</td>
+      <td>②近距离追踪 / ③二用激活</td>
+      <td>状态效果标记限制在角色上方20px区域，不覆盖角色主体</td>
+      <td><span class="cost-l">L</span></td>
+      <td>视野遮挡</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p1">P1</span></td>
+      <td>摇杆控制语义随状态变化但无提示</td>
+      <td>⑦长传遥控 / ⑧以遮盖</td>
+      <td>状态切换时在摇杆中央显示当前控制模式图标（持续显示2s）</td>
+      <td><span class="cost-m">M</span></td>
+      <td>认知负荷 / 费茨定律</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p1">P1</span></td>
+      <td>特殊状态提示与常规HUD视觉语言不统一</td>
+      <td>⑥赤上下线 / ⑫封闭入场</td>
+      <td>建立统一的「状态提示色彩规范」：危险=红，信息=蓝，特殊=紫</td>
+      <td><span class="cost-l">L</span></td>
+      <td>认知负荷</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p1">P1</span></td>
+      <td>按键灰化期间热区未同步禁用</td>
+      <td>⑫封闭入场 / ③二用激活</td>
+      <td>UI灰化即热区禁用，确保视觉状态与交互状态同步</td>
+      <td><span class="cost-l">L</span></td>
+      <td>热区重叠 / 功能性</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p1">P1</span></td>
+      <td>统计数据面板字号过小，移动端阅读困难</td>
+      <td>⑤四者与平均值</td>
+      <td>最小字号提升至14px，关键数据放大至18px+加粗</td>
+      <td><span class="cost-l">L</span></td>
+      <td>认知负荷</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p2">P2</span></td>
+      <td>多语音气泡同时显示无优先级排序</td>
+      <td>⑬语时触发提示</td>
+      <td>气泡队列化显示，同时最多2个，超出时折叠为省略图标</td>
+      <td><span class="cost-m">M</span></td>
+      <td>认知负荷</td>
+    </tr>
+    <tr>
+      <td><span class="tag-p2">P2</span></td>
+      <td>热区间距普遍低于20px推荐值</td>
+      <td>①基础HUD / ②追踪 / ④物件标注</td>
+      <td>按键布局整体重新排版，确保所有相邻热区间距≥20px</td>
+      <td><span class="cost-m">M</span></td>
+      <td>热区间距</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ====== 双人成行特有问题专项分析 ====== -->
+<div class="section-title">🤝 双人成行特有问题专项分析</div>
+<div class="coop-card">
+  <div class="coop-title">👥 协作场景 HUD 专项评估</div>
+
+  <div class="coop-issue">
+    <h6>🔴 [P0] 双方HUD在中央区域发生挤压与碰撞</h6>
+    <p>双人模式下，两名玩家的状态信息（血条、技能冷却、特殊状态标记）同时显示，在1920×1080横屏布局中，中央屏幕区域同时承载双方信息，形成「信息碰撞带」。当双方均处于特殊状态时（如P1遥控+P2遮蔽），中央区域可同时出现4-6个状态标记叠加。</p>
+    <p style="margin-top:6px"><strong>建议：</strong>P1信息靠左固定，P2信息靠右固定，中央区域保持≥30%净空作为战场视野缓冲区。</p>
+  </div>
+
+  <div class="coop-issue warn">
+    <h6>🟡 [P1] Boss战界面无法区分Boss攻击目标（P1 or P2）</h6>
+    <p>Boss攻击提示出现时，未明确标注攻击对象是哪名玩家，双人协作中两名玩家需要独立判断「是否轮到我躲避」，认知负荷显著增加。尤其在boss击与界面叠加状态下，攻击指示的归属信息完全缺失。</p>
+    <p style="margin-top:6px"><strong>建议：</strong>Boss攻击提示增加玩家色彩编码（P1蓝/P2橙），或在对应玩家摇杆区添加震动+高亮边框提示。</p>
+  </div>
+
+  <div class="coop-issue warn">
+    <h6>🟡 [P1] 协作操作（合体技/联合动作）触发入口过深</h6>
+    <p>双人成行核心玩法是协同解谜与合体动作，但界面中协作触发按键位置不突出（通常隐藏在普通交互按键的二级操作中），导致新玩家难以发现协作时机。合体技触发时机通常对时间敏感，深层入口降低了成功率。</p>
+    <p style="margin-top:6px"><strong>建议：</strong>协作可用时，在双方摇杆区同时出现高亮脉冲提示，且协作按键自动置顶（费茨定律优先位）。</p>
+  </div>
+
+  <div class="coop-issue warn">
+    <h6>🟡 [P1] 一方进入特殊状态时，另一方缺少感知提示</h6>
+    <p>当P1激活「赤石万能之力量」或进入「遮盖」状态时，P2的界面无任何提示显示队友状态变化。双人协作中，队友状态是决策依据，缺失此信息导致协作时机判断失误。</p>
+    <p style="margin-top:6px"><strong>建议：</strong>在P2界面左上角P1头像旁显示P1当前激活状态图标（小图标+状态名），持续时间与状态等同。</p>
+  </div>
+
+  <div class="coop-issue good">
+    <h6>✅ [亮点] 双人头像区域位置分离设计合理</h6>
+    <p>两名玩家头像分别固定在左上角，采用上下排列且有色彩区分，在基础HUD状态下角色归属清晰，不会产生混淆。这一基础设计为后续状态叠加提供了良好的信息架构基础。</p>
+  </div>
+
+  <div class="coop-issue good">
+    <h6>✅ [亮点] 语音触发可视化是双人协作体验的加分项</h6>
+    <p>将语音/触发指令可视化为文字气泡，在嘈杂环境中（无声模式、公共场合）有效弥补音频通信的缺失，对双人协调操作帮助显著。建议进一步完善气泡的位置与叠加策略后，可以作为游戏特色功能重点展示。</p>
+  </div>
+</div>
+
+<!-- ====== 四象限优先级矩阵 ====== -->
+<div class="section-title">🎯 四象限优先级矩阵</div>
+<div class="dim-card">
+  <p style="font-size:13px;color:#636e72;margin-bottom:12px;">横轴：修复难度（左=低/右=高）&nbsp;|&nbsp;纵轴：影响程度（上=高/下=低）</p>
+  <div style="text-align:center;font-size:11px;color:#b2bec3;margin-bottom:4px;">↑ 影响程度高</div>
+  <div class="quadrant-wrap">
+    <div class="quadrant q-tl">
+      <h5 style="color:#e74c3c;">🔴 立即修复（高影响 × 低成本）</h5>
+      <ul>
+        <li>• 追踪标记移至角色边缘区域</li>
+        <li>• 按键灰化时同步禁用热区</li>
+        <li>• Boss血条优先级强化样式</li>
+        <li>• 状态提示色彩规范统一</li>
+        <li>• 数据面板最小字号提升至14px</li>
+        <li>• Boss攻击目标归属标注</li>
+      </ul>
+    </div>
+    <div class="quadrant q-tr">
+      <h5 style="color:#f39c12;">🟡 计划修复（高影响 × 高成本）</h5>
+      <ul>
+        <li>• Boss头像改为顶部条幅形式</li>
+        <li>• 多状态叠加UI优先级规则引擎</li>
+        <li>• Boss战专用精简UI模式</li>
+        <li>• P1/P2状态跨人感知系统</li>
+        <li>• 协作触发入口重新设计</li>
+      </ul>
+    </div>
+    <div class="quadrant q-bl">
+      <h5 style="color:#27ae60;">✅ 顺手优化（低影响 × 低成本）</h5>
+      <ul>
+        <li>• 语音气泡位置绑定角色</li>
+        <li>• 边界提示渐进式强度变化</li>
+        <li>• 计时器位置固定在顶部中央</li>
+        <li>• 赤石阶段指示器增加数字</li>
+        <li>• 物件标注优先级排序</li>
+        <li>• 协作按键脉冲提示动效</li>
+      </ul>
+    </div>
+    <div class="quadrant q-br">
+      <h5 style="color:#636e72;">⬜ 暂缓处理（低影响 × 高成本）</h5>
+      <ul>
+        <li>• 摇杆控制语义实时提示系统</li>
+        <li>• 无操作3s后透明度自动降低</li>
+        <li>• 遥控状态HUD自动淡出</li>
+        <li>• 统计面板重构为侧边栏</li>
+      </ul>
+    </div>
+  </div>
+  <div style="text-align:center;font-size:11px;color:#b2bec3;margin-top:4px;">↓ 影响程度低</div>
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:#b2bec3;margin-top:2px;padding:0 20px;"><span>← 修复成本低</span><span>修复成本高 →</span></div>
+</div>
+
+<!-- ====== 设计亮点 ====== -->
+<div class="section-title">⭐ 设计亮点</div>
+<div class="highlight-grid">
+  <div class="highlight-item">
+    <div class="icon">🔴</div>
+    <h6>赤石系列状态反馈</h6>
+    <p>赤石激活采用强烈粒子光效 + 颜色深度分层（3阶段），状态感知清晰度是本次分析中最出色的表现，超过行业中等水平。</p>
+  </div>
+  <div class="highlight-item">
+    <div class="icon">🕹️</div>
+    <h6>虚拟摇杆尺寸设计</h6>
+    <p>摇杆约200dp，远超移动端44dp最低标准，且左右摇杆对称分布在双侧安全拇指区，基础操控舒适度良好。</p>
+  </div>
+  <div class="highlight-item">
+    <div class="icon">🔵</div>
+    <h6>追踪标记色彩选择</h6>
+    <p>近距离追踪采用高饱和蓝色，在暖色系战场背景中具有强烈视觉跳出感，追踪目标识别效率高。</p>
+  </div>
+  <div class="highlight-item">
+    <div class="icon">👥</div>
+    <h6>双人头像分离布局</h6>
+    <p>P1/P2头像采用上下排列+色彩区分方案，在基础HUD状态下角色归属极清晰，为双人信息架构提供了正确基础。</p>
+  </div>
+  <div class="highlight-item">
+    <div class="icon">🏷️</div>
+    <h6>战场物件标注可读性</h6>
+    <p>可交互物件标注采用高对比白/黄色系，配合物件轮廓描边，在复杂3D场景背景下的可读性达到良好水平。</p>
+  </div>
+  <div class="highlight-item">
+    <div class="icon">💬</div>
+    <h6>语音触发可视化</h6>
+    <p>将语音/触发指令转化为文字气泡，是无障碍设计的优秀实践，在静音场景下有效支撑双人协作沟通，体现了完善的多感官设计思维。</p>
+  </div>
+</div>
+
+<!-- ====== FOOTER ====== -->
+<div class="footer">
+  <p>🎮 双人成行玩法手游 HUD 界面易用性分析报告</p>
+  <p>分析框架：7维度易用性评估（热区尺寸/费茨定律/热区间距/热区重叠/认知负荷/视野遮挡/拇指热区分布）</p>
+  <p>理论依据：ISO 9241-9 · Apple HIG · Fitts's Law (1954) · Miller's Law (7±2) · Nielsen's 10 Heuristics · Steven Hoober (2013)</p>
+  <p>生成时间：2026-04-16 &nbsp;|&nbsp; 有效设计稿：13/18 张 &nbsp;|&nbsp; 报告版本：v1.0</p>
+</div>
+
+</div><!-- end container -->
+</body>
+</html>

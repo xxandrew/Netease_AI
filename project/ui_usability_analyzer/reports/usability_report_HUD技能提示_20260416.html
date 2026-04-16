@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易用性分析报告 — HUD技能通用提示设计</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; background:#f5f6fa; color:#2d3436; }
+
+.header { background: linear-gradient(135deg,#2d3436,#636e72); color:#fff; padding:32px 40px; }
+.header h1 { font-size:24px; margin-bottom:8px; }
+.header .meta { font-size:13px; opacity:.8; line-height:2; }
+.batch-badge { display:inline-block; background:#f39c12; color:#fff; font-size:12px; font-weight:700;
+               padding:4px 12px; border-radius:20px; margin-bottom:12px; letter-spacing:.5px; }
+
+.container { max-width:1100px; margin:0 auto; padding:32px 20px; }
+
+.summary-box { background:#fff; border-radius:12px; padding:28px 32px; margin-bottom:24px;
+               box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.total-score { font-size:80px; font-weight:bold; text-align:center; padding:12px 0; color:#f39c12; }
+.score-label-main { text-align:center; color:#636e72; margin-bottom:24px; font-size:14px; }
+.score-bars { margin-bottom:16px; }
+.score-row { display:flex; align-items:center; margin:8px 0; font-size:13px; gap:8px; }
+.score-label { width:120px; color:#636e72; flex-shrink:0; }
+.score-bar-wrap { flex:1; background:#f0f0f0; border-radius:4px; height:8px; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:4px; }
+.score-num { width:36px; text-align:right; font-weight:bold; font-size:13px; }
+
+.overall-summary { background:#f0f8ff; border-left:4px solid #74b9ff;
+                   padding:12px 16px; border-radius:4px; font-size:14px; margin-top:16px; line-height:1.7; }
+
+.key-insight { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+.insight-card { flex:1; min-width:200px; border-radius:10px; padding:18px 20px;
+                box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.insight-card.red   { background:#fff5f5; border-left:4px solid #e74c3c; }
+.insight-card.orange{ background:#fff8f0; border-left:4px solid #f39c12; }
+.insight-card.green { background:#f0fff4; border-left:4px solid #27ae60; }
+.insight-card h4 { font-size:13px; color:#636e72; margin-bottom:6px; }
+.insight-card p  { font-size:15px; font-weight:bold; }
+
+.section-title { font-size:18px; font-weight:bold; margin:32px 0 16px; padding-left:12px;
+                 border-left:4px solid #2d3436; }
+
+/* 横向柱状图 */
+.bar-chart-wrap { background:#fff; border-radius:12px; padding:24px 28px; margin-bottom:20px;
+                  box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.chart-row { display:flex; align-items:center; margin:10px 0; font-size:13px; gap:10px; }
+.chart-label { width:90px; color:#2d3436; flex-shrink:0; text-align:right; }
+.chart-bar-wrap { flex:1; background:#f0f0f0; border-radius:6px; height:22px; overflow:hidden; position:relative; }
+.chart-bar { height:100%; border-radius:6px; display:flex; align-items:center; padding-left:8px;
+             font-size:12px; color:#fff; font-weight:700; transition:width .3s; }
+.chart-score { width:36px; text-align:right; font-weight:bold; font-size:13px; }
+.bar-danger { background: linear-gradient(90deg,#e74c3c,#c0392b); }
+.bar-warn   { background: linear-gradient(90deg,#f39c12,#e67e22); }
+.bar-ok     { background: linear-gradient(90deg,#27ae60,#2ecc71); }
+
+/* 界面分析卡片 */
+.screen-card { background:#fff; border-radius:12px; padding:24px 28px; margin-bottom:20px;
+               box-shadow:0 2px 8px rgba(0,0,0,.06); border-top:4px solid #dfe6e9; }
+.screen-card.score-good  { border-top-color:#27ae60; }
+.screen-card.score-warn  { border-top-color:#f39c12; }
+.screen-card.score-bad   { border-top-color:#e74c3c; }
+.screen-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+.screen-name { font-size:17px; font-weight:bold; }
+.screen-score-badge { font-size:28px; font-weight:bold; }
+.screen-worst { background:#fff5f5; border:1px solid #ffd5d5; border-radius:6px;
+                padding:8px 14px; font-size:13px; margin-bottom:12px; color:#c0392b; }
+.screen-worst strong { margin-right:6px; }
+.problem-list { list-style:none; }
+.problem-list li { padding:5px 0; font-size:13px; line-height:1.6; color:#2d3436; border-bottom:1px solid #f8f9fa; }
+.problem-list li:last-child { border-bottom:none; }
+.tag-p0 { background:#f8d7da; color:#721c24; padding:2px 7px; border-radius:10px; font-weight:bold; font-size:11px; margin-right:6px; }
+.tag-p1 { background:#fff3cd; color:#856404; padding:2px 7px; border-radius:10px; font-weight:bold; font-size:11px; margin-right:6px; }
+.tag-p2 { background:#d1ecf1; color:#0c5460; padding:2px 7px; border-radius:10px; font-weight:bold; font-size:11px; margin-right:6px; }
+
+/* 通用表格 */
+.detail-table { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.detail-table th { background:#f8f9fa; padding:9px 14px; text-align:left;
+                   border:1px solid #e9ecef; font-weight:600; color:#495057; }
+.detail-table td { padding:9px 14px; border:1px solid #e9ecef; vertical-align:top; }
+.detail-table tr:nth-child(even) td { background:#fafafa; }
+
+/* 优先级矩阵 */
+.matrix-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; background:#dee2e6;
+               border-radius:8px; overflow:hidden; margin-top:12px; }
+.matrix-cell { background:#fff; padding:18px 16px; }
+.matrix-cell h5 { font-size:12px; font-weight:700; margin-bottom:10px; padding:4px 8px;
+                  border-radius:4px; display:inline-block; }
+.cell-tl h5 { background:#d4edda; color:#155724; }
+.cell-tr h5 { background:#fff3cd; color:#856404; }
+.cell-bl h5 { background:#d1ecf1; color:#0c5460; }
+.cell-br h5 { background:#f8d7da; color:#721c24; }
+.matrix-cell ul { list-style:none; }
+.matrix-cell li { font-size:12px; padding:3px 0; color:#2d3436; line-height:1.5; }
+.matrix-cell li::before { content:"• "; color:#636e72; }
+.matrix-axis-y { writing-mode:vertical-lr; transform:rotate(180deg); font-size:12px;
+                 font-weight:700; color:#636e72; text-align:center; padding:8px 4px; }
+.matrix-wrap { display:flex; gap:8px; align-items:center; }
+
+/* 亮点卡片 */
+.highlight-cards { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; }
+.highlight-card { flex:1; min-width:220px; background:#f0fff4; border:1px solid #b2dfdb;
+                  border-radius:10px; padding:16px 18px; }
+.highlight-card .hi-icon { font-size:24px; margin-bottom:8px; }
+.highlight-card p { font-size:13px; line-height:1.6; color:#2d3436; }
+
+.cost-l { color:#27ae60; font-weight:600; }
+.cost-m { color:#f39c12; font-weight:600; }
+.cost-h { color:#e74c3c; font-weight:600; }
+
+.dim-card { background:#fff; border-radius:12px; padding:24px 28px; margin-bottom:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,.06); }
+
+.footer { text-align:center; color:#b2bec3; font-size:12px; padding:32px 20px; line-height:1.8; }
+</style>
+</head>
+<body>
+
+<!-- ====== HEADER ====== -->
+<div class="header">
+  <div class="batch-badge">📦 批量分析模式 · 识别设计稿 7 / 9 张</div>
+  <h1>🎮 游戏界面易用性分析报告</h1>
+  <div class="meta">
+    分析对象：#761【通用】HUD技能通用提示设计文档 &nbsp;|&nbsp;
+    交互流程：钉子玩家 + 锤子玩家 &nbsp;|&nbsp;
+    截图总数：7 张（纳入分析）&nbsp;|&nbsp;
+    过滤：黑底说明文档页 &amp; 右侧文字卡片（共2类）&nbsp;|&nbsp;
+    分析时间：2026-04-16
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ====== 综合评分 ====== -->
+  <div class="summary-box">
+    <div class="total-score">66</div>
+    <div class="score-label-main">综合易用性得分（7张界面加权均值，满分 100）</div>
+
+    <div class="score-bars">
+      <div class="score-row">
+        <span class="score-label">热区尺寸</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:82%;background:#27ae60;"></div></div>
+        <span class="score-num" style="color:#27ae60">82</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">费茨定律</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:72%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">72</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">热区间距</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:68%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">68</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">热区重叠</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:75%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">75</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">认知负荷</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:60%;background:#e74c3c;"></div></div>
+        <span class="score-num" style="color:#e74c3c">60</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">视野遮挡</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:78%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">78</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">拇指热区分布</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:74%;background:#f39c12;"></div></div>
+        <span class="score-num" style="color:#f39c12">74</span>
+      </div>
+    </div>
+
+    <div class="overall-summary">
+      📝 <strong>AI 整体评价：</strong>本设计稿整体 HUD 密度适中、保留了充分的游戏视野，锁定状态（⑥）的颜色变化表达清晰是突出亮点。
+      核心短板集中在<strong>信息层次与反馈完整性</strong>——引导文字普遍缺乏背景衬底导致对比度不足（P0），
+      长按充能阶段（②）缺失充能进度反馈，玩家无法感知技能蓄力进程；
+      UI 元素与 3D 场景层次边界模糊，影响快速状态识别。
+      建议优先修复4个 P0 问题（均为 L/M 开发成本），可显著提升整体可用性得分约 10～15 分。
+    </div>
+  </div>
+
+  <!-- ====== 关键指标快览 ====== -->
+  <div class="key-insight">
+    <div class="insight-card red">
+      <h4>🔴 P0 问题数量</h4>
+      <p>4 个（需本迭代修复）</p>
+    </div>
+    <div class="insight-card orange">
+      <h4>🟡 P1 问题数量</h4>
+      <p>3 个（次优先）</p>
+    </div>
+    <div class="insight-card green">
+      <h4>✅ 得分最高界面</h4>
+      <p>⑥ 锤子锁定中（78 分）</p>
+    </div>
+  </div>
+
+  <!-- ====== 各界面得分对比横向柱状图 ====== -->
+  <div class="section-title">📊 各界面综合得分对比</div>
+  <div class="bar-chart-wrap">
+    <p style="font-size:12px;color:#636e72;margin-bottom:16px;">以下为 7 张设计稿界面综合易用性得分（CSS 纯样式，无 JS 图表库）</p>
+
+    <div class="chart-row">
+      <span class="chart-label">① 初始状态</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar bar-warn" style="width:75%;">75</div>
+      </div>
+      <span class="chart-score" style="color:#f39c12">75</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-label">② 长按中</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar bar-danger" style="width:55%;">55</div>
+      </div>
+      <span class="chart-score" style="color:#e74c3c">55</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-label">③ 钉子命中</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar bar-danger" style="width:60%;">60</div>
+      </div>
+      <span class="chart-score" style="color:#e74c3c">60</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-label">④ 钉子回收</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar bar-danger" style="width:58%;">58</div>
+      </div>
+      <span class="chart-score" style="color:#e74c3c">58</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-label">⑤ 路径提示</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar bar-warn" style="width:65%;">65</div>
+      </div>
+      <span class="chart-score" style="color:#f39c12">65</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-label">⑥ 锤子锁定中</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar bar-ok" style="width:78%;">78</div>
+      </div>
+      <span class="chart-score" style="color:#27ae60">78</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-label">⑦ 锤子释放后</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar bar-warn" style="width:70%;">70</div>
+      </div>
+      <span class="chart-score" style="color:#f39c12">70</span>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:20px;font-size:12px;color:#636e72;">
+      <span><span style="display:inline-block;width:12px;height:12px;background:#27ae60;border-radius:2px;margin-right:4px;"></span>良好（≥75）</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#f39c12;border-radius:2px;margin-right:4px;"></span>需关注（60–74）</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#e74c3c;border-radius:2px;margin-right:4px;"></span>较差（&lt;60）</span>
+    </div>
+  </div>
+
+  <!-- ====== 各界面分析卡片 ====== -->
+  <div class="section-title">🖼️ 各界面详细分析</div>
+
+  <!-- ① 初始状态 -->
+  <div class="screen-card score-warn">
+    <div class="screen-header">
+      <span class="screen-name">① 初始状态</span>
+      <span class="screen-score-badge" style="color:#f39c12">75 分</span>
+    </div>
+    <div class="screen-worst">🔺 <strong>最严重问题：</strong>技能引导完全缺失——新玩家首次进入时无任何操作提示</div>
+    <ul class="problem-list">
+      <li><span class="tag-p1">P1</span> 技能操作说明完全缺失，新手无从得知长按机制</li>
+      <li><span class="tag-p1">P1</span> HUD 按键无高亮或动效引导，静止状态辨识度低</li>
+      <li><span class="tag-p2">P2</span> 整体布局干净，但缺乏层次差异，初次进入认知负荷较高</li>
+      <li style="color:#27ae60;">✅ 整体 HUD 密度适中，游戏视野保留充分</li>
+    </ul>
+  </div>
+
+  <!-- ② 长按中 -->
+  <div class="screen-card score-bad">
+    <div class="screen-header">
+      <span class="screen-name">② 长按中（钉子技能蓄力）</span>
+      <span class="screen-score-badge" style="color:#e74c3c">55 分</span>
+    </div>
+    <div class="screen-worst">🔺 <strong>最严重问题（P0）：</strong>无充能进度反馈，玩家无法感知技能蓄力状态</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 长按期间完全没有充能环/进度条动效，玩家不知道技能是否在蓄力</li>
+      <li><span class="tag-p0">P0</span> UI 元素与 3D 场景层次混淆，世界内浮动标记无轮廓描边，视觉层次不清</li>
+      <li><span class="tag-p1">P1</span> 新增操作提示按键出现时无引导动效，容易被忽视</li>
+      <li><span class="tag-p1">P1</span> 多行操作说明一次性展示，认知负荷过重</li>
+    </ul>
+  </div>
+
+  <!-- ③ 钉子命中 -->
+  <div class="screen-card score-bad">
+    <div class="screen-header">
+      <span class="screen-name">③ 钉子命中</span>
+      <span class="screen-score-badge" style="color:#e74c3c">60 分</span>
+    </div>
+    <div class="screen-worst">🔺 <strong>最严重问题（P0）：</strong>引导文字无背景衬底，在亮色场景中几乎不可读</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 引导文字无半透明黑色背景胶囊，对比度严重不足（出现于③⑤⑦）</li>
+      <li><span class="tag-p0">P0</span> 3D 场景与 UI 层次混淆，命中反馈标记缺乏描边/投影</li>
+      <li><span class="tag-p1">P1</span> 命中后多行操作提示堆叠，难以快速扫读</li>
+      <li><span class="tag-p2">P2</span> 命中动效反馈较弱，建议增加短暂震屏或颜色闪烁</li>
+    </ul>
+  </div>
+
+  <!-- ④ 钉子回收 -->
+  <div class="screen-card score-bad">
+    <div class="screen-header">
+      <span class="screen-name">④ 钉子回收</span>
+      <span class="screen-score-badge" style="color:#e74c3c">58 分</span>
+    </div>
+    <div class="screen-worst">🔺 <strong>最严重问题（P0）：</strong>角色头顶提示字体极小，移动场景中几乎无法阅读</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 角色头顶提示字号过小（目测 &lt;14px），需提升至 ≥18px 并加背景框</li>
+      <li><span class="tag-p1">P1</span> 回收过程缺乏进度反馈，无飞回动效或进度指示</li>
+      <li><span class="tag-p2">P2</span> 回收成功后无明确成功态反馈（如短暂绿色高亮）</li>
+      <li style="color:#27ae60;">✅ 视野遮挡控制良好，HUD 不影响场景主体</li>
+    </ul>
+  </div>
+
+  <!-- ⑤ 路径提示 -->
+  <div class="screen-card score-warn">
+    <div class="screen-header">
+      <span class="screen-name">⑤ 锤子路径提示</span>
+      <span class="screen-score-badge" style="color:#f39c12">65 分</span>
+    </div>
+    <div class="screen-worst">🔺 <strong>最严重问题（P0）：</strong>顶部引导文字对比度不足，亮色背景下不可读</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 顶部文字说明无背景衬底，对比度不达 WCAG AA 标准（4.5:1）</li>
+      <li><span class="tag-p1">P1</span> 弧线路径视觉清晰，但起始端缺乏箭头方向指示</li>
+      <li><span class="tag-p2">P2</span> 路径颜色与场景某些元素色彩接近，干扰信息提取</li>
+      <li style="color:#27ae60;">✅ 弧线路径预测符合用户心智模型，方向感直觉清晰</li>
+    </ul>
+  </div>
+
+  <!-- ⑥ 锤子锁定中 -->
+  <div class="screen-card score-good">
+    <div class="screen-header">
+      <span class="screen-name">⑥ 锤子锁定中</span>
+      <span class="screen-score-badge" style="color:#27ae60">78 分</span>
+    </div>
+    <div class="screen-worst" style="background:#f0fff4;border-color:#b2dfdb;color:#155724;">
+      ✅ <strong>本张为最佳界面：</strong>白→橙颜色变化直观传达锁定状态，表现最佳
+    </div>
+    <ul class="problem-list">
+      <li style="color:#27ae60;">✅ 白色→橙色状态变化，锁定感知即时且清晰</li>
+      <li style="color:#27ae60;">✅ 目标锁定圈尺寸合理，视觉聚焦效果好</li>
+      <li><span class="tag-p1">P1</span> 锁定持续时间无进度条显示，玩家不知道锁定何时失效</li>
+      <li><span class="tag-p2">P2</span> 多目标时无优先级排序提示</li>
+    </ul>
+  </div>
+
+  <!-- ⑦ 锤子释放后 -->
+  <div class="screen-card score-warn">
+    <div class="screen-header">
+      <span class="screen-name">⑦ 锤子释放后</span>
+      <span class="screen-score-badge" style="color:#f39c12">70 分</span>
+    </div>
+    <div class="screen-worst">🔺 <strong>最严重问题：</strong>缺乏明确的结果反馈，玩家不知道技能是否成功触发</div>
+    <ul class="problem-list">
+      <li><span class="tag-p0">P0</span> 引导文字仍无背景衬底（与③⑤共性问题）</li>
+      <li><span class="tag-p1">P1</span> 技能命中后缺乏 Toast / 结果提示，玩家不知道伤害/效果是否生效</li>
+      <li><span class="tag-p2">P2</span> 技能冷却倒计时视觉不够突出</li>
+      <li style="color:#27ae60;">✅ 释放动效本身表现流畅，物理感强</li>
+    </ul>
+  </div>
+
+  <!-- ====== 跨页面共性问题汇总 ====== -->
+  <div class="section-title">🔗 跨页面共性问题汇总</div>
+  <div class="dim-card">
+    <table class="detail-table">
+      <tr>
+        <th>问题描述</th>
+        <th>出现界面</th>
+        <th>优先级</th>
+        <th>修复方案</th>
+        <th>开发成本</th>
+      </tr>
+      <tr>
+        <td>引导文字无背景衬底，对比度不足</td>
+        <td>③ ⑤ ⑦</td>
+        <td><span class="tag-p0">P0</span></td>
+        <td>所有浮动文字统一加半透明黑色背景胶囊（rgba(0,0,0,0.55)，圆角 4px）</td>
+        <td><span class="cost-l">L</span></td>
+      </tr>
+      <tr>
+        <td>UI 与 3D 场景层次混淆</td>
+        <td>② ③</td>
+        <td><span class="tag-p0">P0</span></td>
+        <td>世界内标记统一加 1px 白色轮廓描边 + drop-shadow(0 1px 3px rgba(0,0,0,.6))</td>
+        <td><span class="cost-m">M</span></td>
+      </tr>
+      <tr>
+        <td>一次显示多行操作说明</td>
+        <td>② ③ ⑤</td>
+        <td><span class="tag-p1">P1</span></td>
+        <td>改为步骤式逐条展示，当前步骤高亮，完成步骤置灰收起</td>
+        <td><span class="cost-m">M</span></td>
+      </tr>
+      <tr>
+        <td>新增按键出现无引导动效</td>
+        <td>② ③</td>
+        <td><span class="tag-p1">P1</span></td>
+        <td>首次出现加弹入动效（scale 0.6→1.05→1.0，200ms）+ 2次高亮脉冲</td>
+        <td><span class="cost-m">M</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ====== P0/P1 优先级优化汇总 ====== -->
+  <div class="section-title">💡 优先级修复清单（按严重程度）</div>
+  <div class="dim-card">
+    <table class="detail-table">
+      <tr>
+        <th style="width:60px;">优先级</th>
+        <th>问题描述</th>
+        <th>出现界面</th>
+        <th>修复方案</th>
+        <th style="width:70px;">开发成本</th>
+      </tr>
+      <!-- P0 -->
+      <tr>
+        <td><span class="tag-p0">P0</span></td>
+        <td>引导文字无背景衬底，对比度不足</td>
+        <td>③ ⑤ ⑦</td>
+        <td>所有浮动文字加半透明黑色背景胶囊</td>
+        <td><span class="cost-l">L</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag-p0">P0</span></td>
+        <td>角色头顶提示字号过小（&lt;14px）</td>
+        <td>④</td>
+        <td>提示字号 ≥ 18px，加背景框，最小点击区 44×44dp</td>
+        <td><span class="cost-l">L</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag-p0">P0</span></td>
+        <td>技能长按无充能进度反馈</td>
+        <td>②</td>
+        <td>增加充能环 / 进度条动效，满充能时给予震动 + 音效提示</td>
+        <td><span class="cost-m">M</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag-p0">P0</span></td>
+        <td>UI 与 3D 场景层次混淆</td>
+        <td>② ③</td>
+        <td>世界内标记加轮廓描边或 drop-shadow 投影</td>
+        <td><span class="cost-m">M</span></td>
+      </tr>
+      <!-- P1 -->
+      <tr>
+        <td><span class="tag-p1">P1</span></td>
+        <td>一次显示多行操作说明，认知负荷重</td>
+        <td>② ③ ⑤</td>
+        <td>改为步骤式逐条展示，完成步骤自动收起</td>
+        <td><span class="cost-m">M</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag-p1">P1</span></td>
+        <td>新增按键出现无引导动效</td>
+        <td>② ③</td>
+        <td>首次出现加弹入 + 高亮脉冲动效（2次）</td>
+        <td><span class="cost-m">M</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag-p1">P1</span></td>
+        <td>技能命中后无结果反馈</td>
+        <td>⑦</td>
+        <td>加 Toast 提示（命中伤害 / 效果文字，1.5s 自动消失）</td>
+        <td><span class="cost-l">L</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ====== 优先级矩阵（四象限文字版）====== -->
+  <div class="section-title">📐 优先级矩阵（影响力 × 开发成本）</div>
+  <div class="dim-card">
+    <p style="font-size:13px;color:#636e72;margin-bottom:8px;">
+      纵轴：用户影响力（高/低）&nbsp;&nbsp;横轴：开发成本（低/高）<br>
+      <strong>建议从左上象限（高影响×低成本）开始修复</strong>
+    </p>
+    <div class="matrix-wrap">
+      <div class="matrix-axis-y">↑ 高影响 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 低影响 ↓</div>
+      <div style="flex:1;">
+        <div style="display:flex;gap:2px;margin-bottom:2px;">
+          <div style="flex:1;text-align:center;font-size:12px;color:#636e72;padding:4px;">← 低成本（L）</div>
+          <div style="flex:1;text-align:center;font-size:12px;color:#636e72;padding:4px;">高成本（M/H）→</div>
+        </div>
+        <div class="matrix-grid">
+          <!-- 左上：高影响 × 低成本 → 立即修复 -->
+          <div class="matrix-cell cell-tl">
+            <h5>🚀 立即修复（高影响 × 低成本）</h5>
+            <ul>
+              <li>引导文字加黑色背景胶囊（③⑤⑦）</li>
+              <li>角色头顶提示字号 ≥18px（④）</li>
+              <li>技能命中后加 Toast 反馈（⑦）</li>
+            </ul>
+          </div>
+          <!-- 右上：高影响 × 高成本 → 规划迭代 -->
+          <div class="matrix-cell cell-tr">
+            <h5>📅 规划迭代（高影响 × 高成本）</h5>
+            <ul>
+              <li>充能进度环 / 进度条动效（②）</li>
+              <li>3D 世界标记轮廓描边（②③）</li>
+              <li>步骤式逐条操作提示（②③⑤）</li>
+            </ul>
+          </div>
+          <!-- 左下：低影响 × 低成本 → 顺手修复 -->
+          <div class="matrix-cell cell-bl">
+            <h5>🔧 顺手修复（低影响 × 低成本）</h5>
+            <ul>
+              <li>回收成功绿色高亮反馈（④）</li>
+              <li>冷却倒计时视觉强化（⑦）</li>
+              <li>路径弧线起始端加方向箭头（⑤）</li>
+            </ul>
+          </div>
+          <!-- 右下：低影响 × 高成本 → 暂缓 -->
+          <div class="matrix-cell cell-br">
+            <h5>⏸️ 暂缓评估（低影响 × 高成本）</h5>
+            <ul>
+              <li>新增按键弹入 + 高亮动效（②③）</li>
+              <li>多目标锁定优先级排序（⑥）</li>
+              <li>震屏 / 颜色闪烁命中反馈（③）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 设计亮点 ====== -->
+  <div class="section-title">⭐ 设计亮点</div>
+  <div class="dim-card">
+    <p style="font-size:13px;color:#636e72;margin-bottom:16px;">以下亮点在迭代优化时应予以保留，避免在修复问题时被误删。</p>
+    <div class="highlight-cards">
+      <div class="highlight-card">
+        <div class="hi-icon">🟠</div>
+        <p><strong>⑥ 锁定状态颜色变化直观</strong><br>白色→橙色的即时变化清晰传达「已锁定」状态，无需文字说明，符合游戏 HUD 零文字优先原则。</p>
+      </div>
+      <div class="highlight-card">
+        <div class="hi-icon">🏹</div>
+        <p><strong>弧线路径预测符合心智模型</strong><br>⑤ 中弧线路径视觉化预测与玩家对抛物线轨迹的直觉认知高度吻合，学习成本极低。</p>
+      </div>
+      <div class="highlight-card">
+        <div class="hi-icon">🎯</div>
+        <p><strong>整体 HUD 密度适中</strong><br>全程 7 张截图 HUD 元素未过度堆叠，核心游戏视野保留充分，属于克制设计的体现。</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ====== FOOTER ====== -->
+<div class="footer">
+  由 UIUsabilityAnalyzer 自动生成（批量分析模式）&nbsp;|&nbsp; 分析日期：2026-04-16<br>
+  分析对象：#761【通用】HUD技能通用提示设计文档 · 钉子玩家 + 锤子玩家交互流程 · 共 7 张截图<br>
+  理论依据：Fitts's Law · WCAG AA 对比度标准 · Cognitive Load Theory (Sweller 1988) · Steven Hoober 单手操作研究 (2013)<br>
+  <strong>C:\Netease_Ai\Netease_AI_github\project\ui_usability_analyzer\reports\usability_report_HUD技能提示_20260416.html</strong>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+# UI Usability Analyzer — 依赖清单
+# 安装方式：pip install -r requirements.txt
+
+# OpenAI Python SDK（GPT-4o Vision API）
+openai>=1.30.0
+
+# 图片处理（读取截图尺寸、格式转换）
+Pillow>=10.0.0

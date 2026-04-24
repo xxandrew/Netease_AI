@@ -64,6 +64,18 @@ SCORE_WEIGHTS = {
     "thumb_zone":      0.05,
 }
 
+# 开发成本标签常量
+COST_LABELS = {
+    "resource":  "L（资源替换）",
+    "layout":    "M（布局重排）",
+    "layout_l":  "L（布局调整）",
+    "coord":     "L（坐标调整）",
+    "interact":  "M（交互逻辑）",
+    "interact_h": "H（交互重构）",
+    "anim":      "M（动画逻辑）",
+    "interact_m": "M（交互优化）",
+}
+
 
 # ──────────────────────────────────────────────────────────────
 # 数据结构
@@ -190,6 +202,23 @@ def status_icon(ok: bool, warn: bool = False) -> str:
     return "❌"
 
 
+def _get_platform_std(platform: str) -> dict:
+    """获取平台标准，未知平台回退到 mobile"""
+    return PLATFORM_STANDARDS.get(platform, PLATFORM_STANDARDS["mobile"])
+
+
+def _merge_gpt(gpt_analysis: dict, key: str, issues: list, suggestions: list,
+               sugg_cost: str = "") -> None:
+    """将 GPT 分析结果融合到 issues/suggestions 列表中"""
+    section = gpt_analysis.get(key, {})
+    issues += [f"[AI] {i}" for i in section.get("issues", [])]
+    for s in section.get("suggestions", []):
+        entry = f"[AI] {s}"
+        if sugg_cost:
+            entry += f"  |  开发成本：{sugg_cost}"
+        suggestions.append(entry)
+
+
 # ──────────────────────────────────────────────────────────────
 # 维度1：热区尺寸核查
 # ──────────────────────────────────────────────────────────────
@@ -202,52 +231,33 @@ def analyze_hotzone_size(
     检测各按键 px 尺寸，换算为 dp，对照平台触控标准。
     移动端 ≥44dp，PC/平板 ≥32dp。
     """
-    standard = PLATFORM_STANDARDS.get(platform, PLATFORM_STANDARDS["mobile"])
-    min_dp = standard["min_dp"]
-    rows = []
-    issues = []
-    suggestions = []
-    fail_count = 0
-    warn_count = 0
+    min_dp = _get_platform_std(platform)["min_dp"]
+    rows, issues, suggestions = [], [], []
+    fail_count = warn_count = 0
 
     for btn in buttons:
-        w_dp = px_to_dp(btn.width, dpi_scale)
-        h_dp = px_to_dp(btn.height, dpi_scale)
-        size_dp = min(w_dp, h_dp)  # 取短边作为有效触控尺寸
-        ok = size_dp >= min_dp
+        size_dp = min(px_to_dp(btn.width, dpi_scale), px_to_dp(btn.height, dpi_scale))
+        ok   = size_dp >= min_dp
         warn = (not ok) and size_dp >= min_dp * 0.7
-        icon = status_icon(ok, warn)
         rows.append({
             "name": btn.name,
             "size_px": f"{int(btn.width)}×{int(btn.height)}",
             "size_dp": f"{size_dp:.0f}dp",
             "standard": f"≥{min_dp}dp",
-            "status": icon,
+            "status": status_icon(ok, warn),
         })
         if not ok:
             fail_count += 1
-            issues.append(
-                f"「{btn.name}」热区 {size_dp:.0f}dp，低于 {min_dp}dp 标准"
-            )
-            cost = "L（资源替换）" if size_dp >= min_dp * 0.6 else "M（布局重排）"
-            suggestions.append(
-                f"扩展「{btn.name}」热区至 ≥{min_dp}×{min_dp}dp  |  开发成本：{cost}"
-            )
+            issues.append(f"「{btn.name}」热区 {size_dp:.0f}dp，低于 {min_dp}dp 标准")
+            cost = COST_LABELS["resource"] if size_dp >= min_dp * 0.6 else COST_LABELS["layout"]
+            suggestions.append(f"扩展「{btn.name}」热区至 ≥{min_dp}×{min_dp}dp  |  开发成本：{cost}")
         elif warn:
             warn_count += 1
 
     total = len(buttons)
-    pass_rate = (total - fail_count) / total if total > 0 else 1.0
-    score = int(pass_rate * 100) - warn_count * 5
-    score = max(0, min(100, score))
-
-    return DimensionResult(
-        name="热区尺寸",
-        score=score,
-        issues=issues,
-        suggestions=suggestions,
-        details={"rows": rows, "standard_dp": min_dp},
-    )
+    score = max(0, min(100, int((total - fail_count) / total * 100) - warn_count * 5 if total > 0 else 100))
+    return DimensionResult(name="热区尺寸", score=score, issues=issues, suggestions=suggestions,
+                           details={"rows": rows, "standard_dp": min_dp})
 
 
 # ──────────────────────────────────────────────────────────────
@@ -263,22 +273,13 @@ def analyze_fitts_law(
     GPT 结论作为辅助，标注数据作为主要依据。
     """
     w, h = resolution
-    # 拇指热区中心（右下 1/4 区域中心）
-    thumb_cx = w * 0.82
-    thumb_cy = h * 0.80
-
-    issues = []
-    suggestions = []
-    fitts_rows = []
+    thumb_cx, thumb_cy = w * 0.82, h * 0.80  # 拇指热区中心（右下 1/4 区域中心）
+    issues, suggestions, fitts_rows = [], [], []
 
     for btn in buttons:
-        dist = math.sqrt(
-            (btn.center_x - thumb_cx) ** 2 +
-            (btn.center_y - thumb_cy) ** 2
-        )
+        dist = math.sqrt((btn.center_x - thumb_cx) ** 2 + (btn.center_y - thumb_cy) ** 2)
         size = min(btn.width, btn.height)
-        # 费茨指数 ID = log2(2D/W)，越小操作越容易
-        fitts_id = math.log2(2 * dist / size) if size > 0 else 99
+        fitts_id = math.log2(2 * dist / size) if size > 0 else 99  # ID = log2(2D/W)
         fitts_rows.append({
             "name": btn.name,
             "center": f"({btn.center_x:.0f}, {btn.center_y:.0f})",
@@ -286,28 +287,13 @@ def analyze_fitts_law(
             "fitts_id": f"{fitts_id:.2f}",
         })
         if dist > w * 0.5:
-            issues.append(
-                f"「{btn.name}」距拇指热区 {dist:.0f}px，操作成本较高（ID={fitts_id:.2f}）"
-            )
-            suggestions.append(
-                f"考虑将「{btn.name}」迁移至屏幕右下区域  |  开发成本：M（布局重排）"
-            )
+            issues.append(f"「{btn.name}」距拇指热区 {dist:.0f}px，操作成本较高（ID={fitts_id:.2f}）")
+            suggestions.append(f"考虑将「{btn.name}」迁移至屏幕右下区域  |  开发成本：{COST_LABELS['layout']}")
 
-    # 融合 GPT 定性分析
-    gpt_fitts = gpt_analysis.get("fitts_law", {})
-    gpt_issues = gpt_fitts.get("issues", [])
-    gpt_suggs  = gpt_fitts.get("suggestions", [])
-    issues     += [f"[AI] {i}" for i in gpt_issues]
-    suggestions += [f"[AI] {s}" for s in gpt_suggs]
-
+    _merge_gpt(gpt_analysis, "fitts_law", issues, suggestions)
     score = max(0, 100 - len(issues) * 12)
-    return DimensionResult(
-        name="费茨定律",
-        score=score,
-        issues=issues,
-        suggestions=suggestions,
-        details={"fitts_rows": fitts_rows, "thumb_center": (thumb_cx, thumb_cy)},
-    )
+    return DimensionResult(name="费茨定律", score=score, issues=issues, suggestions=suggestions,
+                           details={"fitts_rows": fitts_rows, "thumb_center": (thumb_cx, thumb_cy)})
 
 
 # ──────────────────────────────────────────────────────────────
@@ -318,13 +304,9 @@ def analyze_gap_risk(buttons: list, platform: str) -> DimensionResult:
     检测相邻按键边缘间距（px），防止误触。
     建议 ≥20px（移动端），警告 10–19px，危险 <10px。
     """
-    standard = PLATFORM_STANDARDS.get(platform, PLATFORM_STANDARDS["mobile"])
-    gap_ok   = standard["gap_ok"]
-    gap_warn = standard["gap_warn"]
-
-    issues = []
-    suggestions = []
-    gap_rows = []
+    std = _get_platform_std(platform)
+    gap_ok, gap_warn = std["gap_ok"], std["gap_warn"]
+    issues, suggestions, gap_rows = [], [], []
     danger_count = 0
 
     for i in range(len(buttons)):
@@ -335,30 +317,17 @@ def analyze_gap_risk(buttons: list, platform: str) -> DimensionResult:
                 continue  # 重叠由维度4处理
             ok   = gap >= gap_ok
             warn = (not ok) and gap >= gap_warn
-            icon = status_icon(ok, warn)
-            gap_rows.append({
-                "pair": f"{a.name} ↔ {b.name}",
-                "gap_px": f"{gap:.0f}px",
-                "status": icon,
-            })
+            gap_rows.append({"pair": f"{a.name} ↔ {b.name}", "gap_px": f"{gap:.0f}px",
+                             "status": status_icon(ok, warn)})
             if not ok:
                 danger_count += 1
-                issues.append(
-                    f"「{a.name}」↔「{b.name}」间距 {gap:.0f}px，存在误触风险"
-                )
+                issues.append(f"「{a.name}」↔「{b.name}」间距 {gap:.0f}px，存在误触风险")
                 suggestions.append(
-                    f"将「{a.name}」与「{b.name}」间距扩展至 ≥{gap_ok}px"
-                    f"  |  开发成本：L（布局调整）"
-                )
+                    f"将「{a.name}」与「{b.name}」间距扩展至 ≥{gap_ok}px  |  开发成本：{COST_LABELS['layout_l']}")
 
     score = max(0, 100 - danger_count * 15)
-    return DimensionResult(
-        name="热区间距",
-        score=score,
-        issues=issues,
-        suggestions=suggestions,
-        details={"gap_rows": gap_rows, "standard_gap": gap_ok},
-    )
+    return DimensionResult(name="热区间距", score=score, issues=issues, suggestions=suggestions,
+                           details={"gap_rows": gap_rows, "standard_gap": gap_ok})
 
 
 # ──────────────────────────────────────────────────────────────
@@ -369,9 +338,7 @@ def analyze_overlap(buttons: list, gpt_analysis: dict) -> DimensionResult:
     检测负间距/按键边界相交。
     负间距为功能性 Bug 级别（P0）问题。
     """
-    issues = []
-    suggestions = []
-    overlap_rows = []
+    issues, suggestions, overlap_rows = [], [], []
 
     for i in range(len(buttons)):
         for j in range(i + 1, len(buttons)):
@@ -379,34 +346,21 @@ def analyze_overlap(buttons: list, gpt_analysis: dict) -> DimensionResult:
             gap = calc_edge_gap(a, b)
             if gap < 0:
                 depth = abs(gap)
-                overlap_rows.append({
-                    "pair": f"{a.name} ↔ {b.name}",
-                    "overlap_px": f"{depth:.0f}px",
-                    "severity": "🔴 P0 功能性Bug",
-                })
-                issues.append(
-                    f"[P0] 「{a.name}」与「{b.name}」存在 {depth:.0f}px 重叠（功能性 Bug）"
-                )
+                overlap_rows.append({"pair": f"{a.name} ↔ {b.name}",
+                                     "overlap_px": f"{depth:.0f}px", "severity": "🔴 P0 功能性Bug"})
+                issues.append(f"[P0] 「{a.name}」与「{b.name}」存在 {depth:.0f}px 重叠（功能性 Bug）")
                 suggestions.append(
-                    f"修复「{a.name}」与「{b.name}」坐标，消除重叠"
-                    f"  |  开发成本：L（坐标调整）"
-                )
+                    f"修复「{a.name}」与「{b.name}」坐标，消除重叠  |  开发成本：{COST_LABELS['coord']}")
 
-    # 融合 GPT 补充发现
+    # 融合 GPT 补充发现（overlap 的 AI issues 前缀特殊，单独处理）
     gpt_overlap = gpt_analysis.get("overlap", {})
-    for issue in gpt_overlap.get("issues", []):
-        issues.append(f"[AI-P0] {issue}")
-    for sugg in gpt_overlap.get("suggestions", []):
-        suggestions.append(f"[AI] {sugg}  |  开发成本：L（坐标调整）")
+    issues += [f"[AI-P0] {i}" for i in gpt_overlap.get("issues", [])]
+    for s in gpt_overlap.get("suggestions", []):
+        suggestions.append(f"[AI] {s}  |  开发成本：{COST_LABELS['coord']}")
 
     score = 100 if not issues else max(0, 100 - len(issues) * 25)
-    return DimensionResult(
-        name="热区重叠",
-        score=score,
-        issues=issues,
-        suggestions=suggestions,
-        details={"overlap_rows": overlap_rows},
-    )
+    return DimensionResult(name="热区重叠", score=score, issues=issues, suggestions=suggestions,
+                           details={"overlap_rows": overlap_rows})
 
 
 # ──────────────────────────────────────────────────────────────
@@ -421,16 +375,15 @@ def analyze_cognitive_load(gpt_analysis: dict) -> DimensionResult:
     element_count = cog.get("element_count", -1)
     issues = list(cog.get("issues", []))
     suggestions = []
-
     for sugg in cog.get("suggestions", []):
-        cost = "M（交互优化）"
         if "精简" in sugg or "删除" in sugg:
-            cost = "H（交互重构）"
+            cost = COST_LABELS["interact_h"]
         elif "图标" in sugg or "颜色" in sugg:
-            cost = "L（资源替换）"
+            cost = COST_LABELS["resource"]
+        else:
+            cost = COST_LABELS["interact_m"]
         suggestions.append(f"{sugg}  |  开发成本：{cost}")
 
-    # 根据元素数量给出基础评分
     if element_count < 0:
         score = cog.get("score", 70)
     elif element_count <= COGNITIVE_LOAD_OK:
@@ -440,13 +393,8 @@ def analyze_cognitive_load(gpt_analysis: dict) -> DimensionResult:
     else:
         score = max(40, 100 - (element_count - COGNITIVE_LOAD_WARN) * 5)
 
-    return DimensionResult(
-        name="认知负荷",
-        score=score,
-        issues=issues,
-        suggestions=suggestions,
-        details={"element_count": element_count},
-    )
+    return DimensionResult(name="认知负荷", score=score, issues=issues, suggestions=suggestions,
+                           details={"element_count": element_count})
 
 
 # ──────────────────────────────────────────────────────────────
@@ -458,38 +406,26 @@ def analyze_occlusion(gpt_analysis: dict, buttons: list, resolution: tuple) -> D
     若有标注数据则计算实际占屏比；否则依赖 GPT 结论。
     """
     w, h = resolution
-    screen_area = w * h
-    issues = []
-    suggestions = []
+    issues, suggestions = [], []
     ui_ratio = None
 
     if buttons:
-        # 计算所有按键总覆盖面积（不去重叠区域，简化计算）
-        total_ui_area = sum(b.width * b.height for b in buttons)
-        ui_ratio = total_ui_area / screen_area
+        ui_ratio = sum(b.width * b.height for b in buttons) / (w * h)
         if ui_ratio > OCCLUSION_RATIO_OK:
             issues.append(
-                f"UI 元素总占屏比 {ui_ratio*100:.1f}%，超过建议上限 {OCCLUSION_RATIO_OK*100:.0f}%"
-            )
+                f"UI 元素总占屏比 {ui_ratio*100:.1f}%，超过建议上限 {OCCLUSION_RATIO_OK*100:.0f}%")
             suggestions.append(
-                "考虑收起/隐藏低频 UI 元素，战斗过程中降低遮挡比例"
-                "  |  开发成本：M（交互逻辑）"
-            )
+                f"考虑收起/隐藏低频 UI 元素，战斗过程中降低遮挡比例  |  开发成本：{COST_LABELS['interact']}")
 
-    # 融合 GPT 分析
+    # 融合 GPT 分析（occlusion 的 AI suggestions 用动画逻辑成本）
     occ = gpt_analysis.get("occlusion", {})
-    issues += [i for i in occ.get("issues", [])]
-    for sugg in occ.get("suggestions", []):
-        suggestions.append(f"{sugg}  |  开发成本：M（动画逻辑）")
+    issues += list(occ.get("issues", []))
+    for s in occ.get("suggestions", []):
+        suggestions.append(f"{s}  |  开发成本：{COST_LABELS['anim']}")
 
     score = occ.get("score", 80) if not issues else max(50, occ.get("score", 70))
-    return DimensionResult(
-        name="视野遮挡",
-        score=score,
-        issues=issues,
-        suggestions=suggestions,
-        details={"ui_ratio": f"{ui_ratio*100:.1f}%" if ui_ratio else "N/A（无标注数据）"},
-    )
+    return DimensionResult(name="视野遮挡", score=score, issues=issues, suggestions=suggestions,
+                           details={"ui_ratio": f"{ui_ratio*100:.1f}%" if ui_ratio else "N/A（无标注数据）"})
 
 
 # ──────────────────────────────────────────────────────────────
@@ -500,11 +436,8 @@ def analyze_thumb_zone(buttons: list, resolution: tuple, gpt_analysis: dict) -> 
     判断各按键落在舒适区 / 可达区 / 困难区。
     高频操作应 ≥80% 落在舒适区/可达区。
     """
-    issues = []
-    suggestions = []
-    zone_rows = []
-    comfort_count = 0
-    difficult_count = 0
+    issues, suggestions, zone_rows = [], [], []
+    comfort_count = difficult_count = 0
 
     for btn in buttons:
         zone = classify_thumb_zone(btn, resolution)
@@ -514,30 +447,15 @@ def analyze_thumb_zone(buttons: list, resolution: tuple, gpt_analysis: dict) -> 
         elif zone == "困难区":
             difficult_count += 1
             issues.append(f"「{btn.name}」位于困难区（屏幕上方），若为高频操作建议迁移")
-            suggestions.append(
-                f"将「{btn.name}」迁移至可达区或舒适区  |  开发成本：M（布局重排）"
-            )
+            suggestions.append(f"将「{btn.name}」迁移至可达区或舒适区  |  开发成本：{COST_LABELS['layout']}")
 
-    # 融合 GPT 定性分析
-    thumb = gpt_analysis.get("thumb_zone", {})
-    issues += [f"[AI] {i}" for i in thumb.get("issues", [])]
-
+    _merge_gpt(gpt_analysis, "thumb_zone", issues, suggestions)
     total = len(buttons)
     easy_rate = (comfort_count + (total - difficult_count - comfort_count)) / total if total > 0 else 1
-    score = int(easy_rate * 100)
-    score = max(0, min(100, score))
-
-    return DimensionResult(
-        name="拇指热区分布",
-        score=score,
-        issues=issues,
-        suggestions=suggestions,
-        details={
-            "zone_rows": zone_rows,
-            "comfort_count": comfort_count,
-            "difficult_count": difficult_count,
-        },
-    )
+    score = max(0, min(100, int(easy_rate * 100)))
+    return DimensionResult(name="拇指热区分布", score=score, issues=issues, suggestions=suggestions,
+                           details={"zone_rows": zone_rows, "comfort_count": comfort_count,
+                                    "difficult_count": difficult_count})
 
 
 # ──────────────────────────────────────────────────────────────
@@ -546,8 +464,18 @@ def analyze_thumb_zone(buttons: list, resolution: tuple, gpt_analysis: dict) -> 
 def call_gpt_vision(image_path: str, platform: str, api_key: str) -> dict:
     """
     调用 GPT-4o Vision API，获取截图的定性易用性分析。
-    返回结构化 JSON，包含7个维度的 issues / suggestions。
+    无 API Key 时返回空 fallback，让后续7个维度仅依赖标注数据运行。
     """
+    if not api_key:
+        print("[INFO] 无 API Key，跳过 GPT 视觉分析，仅使用标注数据进行评估。")
+        return {
+            "fitts_law":      {"issues": [], "suggestions": []},
+            "overlap":        {"issues": [], "suggestions": []},
+            "cognitive_load": {"element_count": 0, "score": 70, "issues": [], "suggestions": []},
+            "occlusion":      {"score": 70, "issues": [], "suggestions": []},
+            "thumb_zone":     {"issues": [], "suggestions": []},
+            "overall_summary": "（未配置 API Key，本报告基于按键标注数据的量化分析，不含 GPT 视觉评价。）",
+        }
     client = OpenAI(api_key=api_key)
     b64 = encode_image_base64(image_path)
     mime = get_image_mime(image_path)
@@ -593,29 +521,14 @@ def call_gpt_vision(image_path: str, platform: str, api_key: str) -> dict:
 """
 
     response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{mime};base64,{b64}",
-                            "detail": "high",
-                        },
-                    },
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ],
-        max_tokens=2000,
-        temperature=0.2,
+        model="gpt-4o", max_tokens=2000, temperature=0.2,
+        messages=[{"role": "user", "content": [
+            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}", "detail": "high"}},
+            {"type": "text", "text": prompt},
+        ]}],
     )
-
     raw = response.choices[0].message.content.strip()
-    # 提取 JSON（去掉可能存在的 markdown 代码块标记）
-    if "```" in raw:
+    if "```" in raw:  # 去掉可能存在的 markdown 代码块标记
         raw = raw.split("```")[1]
         if raw.startswith("json"):
             raw = raw[4:]
@@ -624,6 +537,47 @@ def call_gpt_vision(image_path: str, platform: str, api_key: str) -> dict:
     except json.JSONDecodeError:
         print(f"[WARN] GPT 返回非标准 JSON，使用空白结果。原始内容：\n{raw[:300]}")
         return {}
+
+
+# ──────────────────────────────────────────────────────────────
+# HTML 报告生成器辅助函数
+# ──────────────────────────────────────────────────────────────
+def _build_detail_table(dim) -> str:
+    """根据维度名称和详情数据生成对应的 HTML 详情表格"""
+    def wrap_table(header_html: str, rows_html: str) -> str:
+        return f'<table class="detail-table">\n{header_html}\n{rows_html}</table>'
+
+    if dim.name == "热区尺寸" and dim.details.get("rows"):
+        header = "<tr><th>按键</th><th>尺寸(px)</th><th>尺寸(dp)</th><th>标准</th><th>状态</th></tr>"
+        body = "".join(
+            f'<tr><td>{r["name"]}</td><td>{r["size_px"]}</td>'
+            f'<td>{r["size_dp"]}</td><td>{r["standard"]}</td><td>{r["status"]}</td></tr>'
+            for r in dim.details["rows"])
+        return wrap_table(header, body)
+
+    if dim.name == "热区间距" and dim.details.get("gap_rows"):
+        header = "<tr><th>按键对</th><th>间距(px)</th><th>状态</th></tr>"
+        body = "".join(
+            f'<tr><td>{r["pair"]}</td><td>{r["gap_px"]}</td><td>{r["status"]}</td></tr>'
+            for r in dim.details["gap_rows"])
+        return wrap_table(header, body)
+
+    if dim.name == "热区重叠" and dim.details.get("overlap_rows"):
+        header = "<tr><th>按键对</th><th>重叠深度(px)</th><th>严重程度</th></tr>"
+        body = "".join(
+            f'<tr><td>{r["pair"]}</td><td>{r["overlap_px"]}</td><td>{r["severity"]}</td></tr>'
+            for r in dim.details["overlap_rows"])
+        return wrap_table(header, body)
+
+    if dim.name == "拇指热区分布" and dim.details.get("zone_rows"):
+        zone_icon = {"舒适区": "🟢", "可达区": "🟡", "困难区": "🔴"}
+        header = "<tr><th>按键</th><th>热区分类</th></tr>"
+        body = "".join(
+            f'<tr><td>{r["name"]}</td><td>{zone_icon.get(r["zone"], "")} {r["zone"]}</td></tr>'
+            for r in dim.details["zone_rows"])
+        return wrap_table(header, body)
+
+    return ""
 
 
 # ──────────────────────────────────────────────────────────────
@@ -645,88 +599,27 @@ def generate_html_report(result: AnalysisResult, gpt_raw: dict) -> str:
         return "#e74c3c"
 
     # 构建维度卡片
-    dimension_cards = ""
-    for dim in result.dimensions:
-        issues_html = "".join(
-            f'<li class="issue">⚠ {i}</li>' for i in dim.issues
-        ) or '<li class="ok">✅ 无发现问题</li>'
-        suggs_html = "".join(
-            f'<li class="sugg">→ {s}</li>' for s in dim.suggestions
-        ) or '<li class="sugg-empty">暂无优化建议</li>'
-
-        # 维度专属详情表格
-        detail_table = ""
-        if dim.name == "热区尺寸" and dim.details.get("rows"):
-            rows = dim.details["rows"]
-            detail_table = """<table class="detail-table">
-<tr><th>按键</th><th>尺寸(px)</th><th>尺寸(dp)</th><th>标准</th><th>状态</th></tr>
-""" + "".join(
-                f'<tr><td>{r["name"]}</td><td>{r["size_px"]}</td>'
-                f'<td>{r["size_dp"]}</td><td>{r["standard"]}</td>'
-                f'<td>{r["status"]}</td></tr>'
-                for r in rows
-            ) + "</table>"
-
-        elif dim.name == "热区间距" and dim.details.get("gap_rows"):
-            rows = dim.details["gap_rows"]
-            detail_table = """<table class="detail-table">
-<tr><th>按键对</th><th>间距(px)</th><th>状态</th></tr>
-""" + "".join(
-                f'<tr><td>{r["pair"]}</td><td>{r["gap_px"]}</td><td>{r["status"]}</td></tr>'
-                for r in rows
-            ) + "</table>"
-
-        elif dim.name == "热区重叠" and dim.details.get("overlap_rows"):
-            rows = dim.details["overlap_rows"]
-            detail_table = """<table class="detail-table">
-<tr><th>按键对</th><th>重叠深度(px)</th><th>严重程度</th></tr>
-""" + "".join(
-                f'<tr><td>{r["pair"]}</td><td>{r["overlap_px"]}</td><td>{r["severity"]}</td></tr>'
-                for r in rows
-            ) + "</table>"
-
-        elif dim.name == "拇指热区分布" and dim.details.get("zone_rows"):
-            rows = dim.details["zone_rows"]
-            zone_icon = {"舒适区": "🟢", "可达区": "🟡", "困难区": "🔴"}
-            detail_table = """<table class="detail-table">
-<tr><th>按键</th><th>热区分类</th></tr>
-""" + "".join(
-                f'<tr><td>{r["name"]}</td>'
-                f'<td>{zone_icon.get(r["zone"], "")} {r["zone"]}</td></tr>'
-                for r in rows
-            ) + "</table>"
-
-        sc = dim.score
-        dimension_cards += f"""
-<div class="dim-card">
-  <div class="dim-header">
-    <span class="dim-name">{dim.name}</span>
-    <span class="dim-score" style="color:{score_color(sc)}">{sc} 分</span>
-  </div>
-  {detail_table}
-  <div class="issues-section">
-    <strong>发现问题：</strong>
-    <ul>{issues_html}</ul>
-  </div>
-  <div class="sugg-section">
-    <strong>优化建议：</strong>
-    <ul>{suggs_html}</ul>
-  </div>
-</div>
-"""
+    def _dim_card(dim) -> str:
+        ih = ("".join(f'<li class="issue">⚠ {i}</li>' for i in dim.issues)
+              or '<li class="ok">✅ 无发现问题</li>')
+        sh = ("".join(f'<li class="sugg">→ {s}</li>' for s in dim.suggestions)
+              or '<li class="sugg-empty">暂无优化建议</li>')
+        return (f'\n<div class="dim-card"><div class="dim-header">'
+                f'<span class="dim-name">{dim.name}</span>'
+                f'<span class="dim-score" style="color:{score_color(dim.score)}">{dim.score} 分</span>'
+                f'</div>{_build_detail_table(dim)}'
+                f'<div class="issues-section"><strong>发现问题：</strong><ul>{ih}</ul></div>'
+                f'<div class="sugg-section"><strong>优化建议：</strong><ul>{sh}</ul></div></div>\n')
+    dimension_cards = "".join(_dim_card(d) for d in result.dimensions)
 
     # 评分雷达数据（用 emoji 进度条近似）
-    score_bars = ""
-    for dim in result.dimensions:
-        fill = int(dim.score / 10)
-        bar = "█" * fill + "░" * (10 - fill)
-        score_bars += (
-            f'<div class="score-row">'
-            f'<span class="score-label">{dim.name}</span>'
-            f'<span class="score-bar" style="color:{score_color(dim.score)}">{bar}</span>'
-            f'<span class="score-num">{dim.score}</span>'
-            f'</div>\n'
-        )
+    score_bars = "".join(
+        f'<div class="score-row">'
+        f'<span class="score-label">{d.name}</span>'
+        f'<span class="score-bar" style="color:{score_color(d.score)}">{"█" * (d.score // 10)}{"░" * (10 - d.score // 10)}</span>'
+        f'<span class="score-num">{d.score}</span></div>\n'
+        for d in result.dimensions
+    )
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -811,53 +704,27 @@ class UIUsabilityAnalyzer:
     支持截图输入 + 可选按键标注数据，输出 HTML 报告 + JSON 数据。
     """
 
-    def __init__(
-        self,
-        image_path:  str,
-        resolution:  tuple          = (1920, 1080),
-        platform:    str            = "mobile",
-        button_data: Optional[list] = None,
-        output_dir:  str            = "./reports",
-        api_key:     Optional[str]  = None,
-        dpi_scale:   float          = 1.0,
-    ):
+    def __init__(self, image_path: str, resolution: tuple = (1920, 1080),
+                 platform: str = "mobile", button_data: Optional[list] = None,
+                 output_dir: str = "./reports", api_key: Optional[str] = None,
+                 dpi_scale: float = 1.0):
         """
-        参数：
-          image_path  : 截图本地路径
-          resolution  : 屏幕分辨率元组，默认 (1920, 1080)
-          platform    : 平台类型 "mobile" | "tablet" | "pc"
-          button_data : 按键标注数据列表（JSON格式），含 name/x/y/width/height
-          output_dir  : 报告输出目录
-          api_key     : OpenAI API Key（优先从环境变量 OPENAI_API_KEY 读取）
-          dpi_scale   : DPI 缩放系数，@1x=1.0，@2x=2.0
+        image_path: 截图路径 | resolution: 分辨率 | platform: mobile/tablet/pc
+        button_data: 按键标注列表 | output_dir: 输出目录 | dpi_scale: DPI缩放(@1x=1.0)
         """
-        self.image_path  = image_path
-        self.resolution  = resolution
-        self.platform    = platform
-        self.output_dir  = output_dir
-        self.dpi_scale   = dpi_scale
-
-        # API Key 优先读取环境变量
+        self.image_path = image_path
+        self.resolution = resolution
+        self.platform   = platform
+        self.output_dir = output_dir
+        self.dpi_scale  = dpi_scale
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
         if not self.api_key:
-            raise ValueError(
-                "未找到 OpenAI API Key！\n"
-                "请设置环境变量 OPENAI_API_KEY 或通过 --api_key 参数传入。"
-            )
-
-        # 解析按键标注数据
-        self.buttons: list = []
-        if button_data:
-            for b in button_data:
-                self.buttons.append(ButtonInfo(
-                    name=b["name"],
-                    x=float(b["x"]),
-                    y=float(b["y"]),
-                    width=float(b["width"]),
-                    height=float(b["height"]),
-                ))
-
-        # 校验图片是否存在
+            print("[WARN] 未配置 OPENAI_API_KEY，将跳过 GPT 视觉分析，仅输出基于标注数据的量化报告。")
+        self.buttons: list = [
+            ButtonInfo(name=b["name"], x=float(b["x"]), y=float(b["y"]),
+                       width=float(b["width"]), height=float(b["height"]))
+            for b in (button_data or [])
+        ]
         if not Path(image_path).exists():
             raise FileNotFoundError(f"截图文件不存在：{image_path}")
 
@@ -877,101 +744,66 @@ class UIUsabilityAnalyzer:
         dims = []
 
         # 维度1：热区尺寸（需要标注数据）
-        if self.buttons:
-            dims.append(analyze_hotzone_size(self.buttons, self.platform, self.dpi_scale))
-        else:
-            dims.append(DimensionResult(
-                name="热区尺寸",
-                score=70,
-                issues=["未提供按键标注数据，无法精确计算 dp 尺寸"],
-                suggestions=["提供 --buttons 标注 JSON 以获得精确热区评估"],
-                details={"note": "依赖标注数据"},
-            ))
-
+        dims.append(
+            analyze_hotzone_size(self.buttons, self.platform, self.dpi_scale) if self.buttons
+            else DimensionResult(name="热区尺寸", score=70,
+                                 issues=["未提供按键标注数据，无法精确计算 dp 尺寸"],
+                                 suggestions=["提供 --buttons 标注 JSON 以获得精确热区评估"],
+                                 details={"note": "依赖标注数据"})
+        )
         # 维度2：费茨定律
         dims.append(analyze_fitts_law(self.buttons, self.resolution, gpt_raw))
-
         # 维度3：热区间距
-        if len(self.buttons) >= 2:
-            dims.append(analyze_gap_risk(self.buttons, self.platform))
-        else:
-            dims.append(DimensionResult(
-                name="热区间距",
-                score=70,
-                issues=["未提供足够的按键标注数据，无法计算间距"],
-                suggestions=["提供 --buttons 标注 JSON 以获得精确间距评估"],
-                details={},
-            ))
-
+        dims.append(
+            analyze_gap_risk(self.buttons, self.platform) if len(self.buttons) >= 2
+            else DimensionResult(name="热区间距", score=70,
+                                 issues=["未提供足够的按键标注数据，无法计算间距"],
+                                 suggestions=["提供 --buttons 标注 JSON 以获得精确间距评估"],
+                                 details={})
+        )
         # 维度4：热区重叠
         dims.append(analyze_overlap(self.buttons, gpt_raw))
-
         # 维度5：认知负荷
         dims.append(analyze_cognitive_load(gpt_raw))
-
         # 维度6：视野遮挡
         dims.append(analyze_occlusion(gpt_raw, self.buttons, self.resolution))
-
         # 维度7：拇指热区分布
         dims.append(analyze_thumb_zone(self.buttons, self.resolution, gpt_raw))
 
         # Step 3：加权综合评分
-        dim_map = {
-            "热区尺寸":    "hotzone_size",
-            "费茨定律":    "fitts_law",
-            "热区间距":    "gap_risk",
-            "热区重叠":    "overlap",
-            "认知负荷":    "cognitive_load",
-            "视野遮挡":    "occlusion",
-            "拇指热区分布": "thumb_zone",
+        _dim_key_map = {
+            "热区尺寸": "hotzone_size", "费茨定律": "fitts_law", "热区间距": "gap_risk",
+            "热区重叠": "overlap", "认知负荷": "cognitive_load",
+            "视野遮挡": "occlusion", "拇指热区分布": "thumb_zone",
         }
-        total = 0.0
-        for dim in dims:
-            key = dim_map.get(dim.name, "")
-            weight = SCORE_WEIGHTS.get(key, 1 / len(dims))
-            total += dim.score * weight
-        total_score = int(total)
+        total_score = int(sum(
+            d.score * SCORE_WEIGHTS.get(_dim_key_map.get(d.name, ""), 1 / len(dims))
+            for d in dims
+        ))
 
-        result = AnalysisResult(
-            image_path=self.image_path,
-            resolution=self.resolution,
-            platform=self.platform,
-            timestamp=timestamp,
-            dimensions=dims,
-            total_score=total_score,
-        )
+        result = AnalysisResult(image_path=self.image_path, resolution=self.resolution,
+                                platform=self.platform, timestamp=timestamp,
+                                dimensions=dims, total_score=total_score)
 
         # Step 4：生成报告文件
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         base_name = Path(self.image_path).stem
         date_str  = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # HTML 报告
         html_path = str(Path(self.output_dir) / f"usability_report_{base_name}_{date_str}.html")
-        html_content = generate_html_report(result, gpt_raw)
         with open(html_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
+            f.write(generate_html_report(result, gpt_raw))
         result.report_html = html_path
         print(f"[INFO] HTML 报告已生成：{html_path}")
 
         # JSON 数据
         json_path = str(Path(self.output_dir) / f"usability_data_{base_name}_{date_str}.json")
         json_data = {
-            "image_path":  result.image_path,
-            "resolution":  list(result.resolution),
-            "platform":    result.platform,
-            "timestamp":   result.timestamp,
+            "image_path": result.image_path, "resolution": list(result.resolution),
+            "platform": result.platform, "timestamp": result.timestamp,
             "total_score": result.total_score,
-            "dimensions": [
-                {
-                    "name":        d.name,
-                    "score":       d.score,
-                    "issues":      d.issues,
-                    "suggestions": d.suggestions,
-                    "details":     d.details,
-                }
-                for d in dims
-            ],
+            "dimensions": [{"name": d.name, "score": d.score, "issues": d.issues,
+                             "suggestions": d.suggestions, "details": d.details} for d in dims],
             "gpt_raw": gpt_raw,
         }
         with open(json_path, "w", encoding="utf-8") as f:
@@ -1012,43 +844,20 @@ def parse_args():
   OPENAI_API_KEY  — OpenAI API Key（必须设置，或通过 --api_key 参数传入）
         """,
     )
-    parser.add_argument(
-        "--image", "-i",
-        required=True,
-        help="游戏界面截图路径（支持 jpg/png/webp）",
-    )
-    parser.add_argument(
-        "--resolution", "-r",
-        default="1920x1080",
-        help="截图分辨率，格式为 WIDTHxHEIGHT，默认 1920x1080",
-    )
-    parser.add_argument(
-        "--platform", "-p",
-        choices=["mobile", "tablet", "pc"],
-        default="mobile",
-        help="平台类型（影响 dp 标准），默认 mobile",
-    )
-    parser.add_argument(
-        "--buttons", "-b",
-        default=None,
-        help="按键标注数据 JSON 文件路径（可选）",
-    )
-    parser.add_argument(
-        "--output", "-o",
-        default="./reports",
-        help="报告输出目录，默认 ./reports",
-    )
-    parser.add_argument(
-        "--dpi_scale",
-        type=float,
-        default=1.0,
-        help="DPI 缩放系数：@1x=1.0（默认），@2x=2.0",
-    )
-    parser.add_argument(
-        "--api_key",
-        default=None,
-        help="OpenAI API Key（优先级低于环境变量 OPENAI_API_KEY）",
-    )
+    parser.add_argument("--image",      "-i", required=True,
+                        help="游戏界面截图路径（支持 jpg/png/webp）")
+    parser.add_argument("--resolution", "-r", default="1920x1080",
+                        help="截图分辨率，格式为 WIDTHxHEIGHT，默认 1920x1080")
+    parser.add_argument("--platform",   "-p", choices=["mobile", "tablet", "pc"], default="mobile",
+                        help="平台类型（影响 dp 标准），默认 mobile")
+    parser.add_argument("--buttons",    "-b", default=None,
+                        help="按键标注数据 JSON 文件路径（可选）")
+    parser.add_argument("--output",     "-o", default="./reports",
+                        help="报告输出目录，默认 ./reports")
+    parser.add_argument("--dpi_scale", type=float, default=1.0,
+                        help="DPI 缩放系数：@1x=1.0（默认），@2x=2.0")
+    parser.add_argument("--api_key", default=None,
+                        help="OpenAI API Key（优先级低于环境变量 OPENAI_API_KEY）")
     return parser.parse_args()
 
 

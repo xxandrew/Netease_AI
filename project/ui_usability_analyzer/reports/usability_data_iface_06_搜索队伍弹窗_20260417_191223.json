@@ -1,0 +1,113 @@
+{
+  "image_path": "C:\\Netease_Ai\\project\\ui_usability_analyzer\\tmp_images\\iface_06_搜索队伍弹窗.png",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "platform": "mobile",
+  "timestamp": "2026-04-17 19:12:23",
+  "total_score": 85,
+  "dimensions": [
+    {
+      "name": "热区尺寸",
+      "score": 70,
+      "issues": [
+        "未提供按键标注数据，无法精确计算 dp 尺寸"
+      ],
+      "suggestions": [
+        "提供 --buttons 标注 JSON 以获得精确热区评估"
+      ],
+      "details": {
+        "note": "依赖标注数据"
+      }
+    },
+    {
+      "name": "费茨定律",
+      "score": 100,
+      "issues": [],
+      "suggestions": [],
+      "details": {
+        "fitts_rows": [],
+        "thumb_center": [
+          1574.3999999999999,
+          864.0
+        ]
+      }
+    },
+    {
+      "name": "热区间距",
+      "score": 70,
+      "issues": [
+        "未提供足够的按键标注数据，无法计算间距"
+      ],
+      "suggestions": [
+        "提供 --buttons 标注 JSON 以获得精确间距评估"
+      ],
+      "details": {}
+    },
+    {
+      "name": "热区重叠",
+      "score": 100,
+      "issues": [],
+      "suggestions": [],
+      "details": {
+        "overlap_rows": []
+      }
+    },
+    {
+      "name": "认知负荷",
+      "score": 95,
+      "issues": [],
+      "suggestions": [],
+      "details": {
+        "element_count": 0
+      }
+    },
+    {
+      "name": "视野遮挡",
+      "score": 70,
+      "issues": [],
+      "suggestions": [],
+      "details": {
+        "ui_ratio": "N/A（无标注数据）"
+      }
+    },
+    {
+      "name": "拇指热区分布",
+      "score": 100,
+      "issues": [],
+      "suggestions": [],
+      "details": {
+        "zone_rows": [],
+        "comfort_count": 0,
+        "difficult_count": 0
+      }
+    }
+  ],
+  "gpt_raw": {
+    "fitts_law": {
+      "issues": [],
+      "suggestions": []
+    },
+    "overlap": {
+      "issues": [],
+      "suggestions": []
+    },
+    "cognitive_load": {
+      "element_count": 0,
+      "score": 70,
+      "issues": [],
+      "suggestions": []
+    },
+    "occlusion": {
+      "score": 70,
+      "issues": [],
+      "suggestions": []
+    },
+    "thumb_zone": {
+      "issues": [],
+      "suggestions": []
+    },
+    "overall_summary": "（未配置 API Key，本报告基于按键标注数据的量化分析，不含 GPT 视觉评价。）"
+  }
+}

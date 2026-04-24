@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S66 任务系统交互说明</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #111114; color: #c8c8cc; font-size: 16px; line-height: 1.7; }
+
+/* ── 文档头 ── */
+.doc-header { background: #0a0a0c; border: 1px solid #1e1e24; border-radius: 8px; padding: 20px 28px 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.doc-header-top { display: flex; align-items: center; justify-content: space-between; }
+.doc-header-left { display: flex; align-items: center; gap: 14px; }
+.doc-icon { width: 48px; height: 48px; border-radius: 10px; background: #1a3a1a; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.doc-title-group { display: flex; flex-direction: column; gap: 2px; }
+.doc-version { font-size: 13px; color: #555; font-family: monospace; }
+.doc-title { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: 1px; }
+.doc-brand { font-size: 14px; color: #444; font-weight: 700; letter-spacing: 2px; align-self: flex-end; }
+.doc-header-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.doc-meta-names { font-size: 14px; color: #666; }
+.doc-meta-names span { color: #888; }
+.doc-meta-sep { color: #333; }
+.doc-legend { display: flex; gap: 14px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend-dot.plan { background: #4a9eff; } .legend-item.plan { color: #4a9eff; }
+.legend-dot.gui  { background: #48C75F; } .legend-item.gui  { color: #48C75F; }
+.legend-dot.dev  { background: #ff5555; } .legend-item.dev  { color: #ff5555; }
+
+/* ── 布局 ── */
+.doc-layout { display: flex; height: 100vh; overflow: hidden; }
+#sidebar { width: 240px; flex-shrink: 0; background: #0d0d10; border-right: 1px solid #1e1e22; padding: 24px 0; height: 100vh; overflow-y: auto; }
+.doc-main { flex: 1; overflow: hidden; min-width: 0; }
+#sidebar .sidebar-title { font-size: 12px; color: #3a3a40; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 0 18px 10px; border-bottom: 1px solid #1e1e22; margin-bottom: 10px; }
+#sidebar .nav-group-label { font-size: 12px; color: #3a3a40; font-weight: 700; letter-spacing: 0.8px; padding: 6px 18px 3px; }
+#sidebar .nav-iface-link { display: flex; align-items: center; gap: 8px; padding: 9px 18px; color: #ccc; text-decoration: none; font-size: 15px; font-weight: 600; transition: color 0.15s, background 0.15s; }
+#sidebar .nav-iface-link:hover { color: #eee; background: #141418; }
+#sidebar .nav-iface-link.active { color: #F5A623; background: #18180e; }
+#sidebar .nav-iface-num { font-family: monospace; font-size: 12px; font-weight: 700; color: #888; background: #1e1e22; border: 1px solid #2e2e38; padding: 1px 6px; border-radius: 3px; flex-shrink: 0; }
+#sidebar .nav-iface-link.active .nav-iface-num { color: #F5A623; border-color: #F5A62355; background: #241e00; }
+#sidebar .nav-sub-link { display: flex; align-items: center; gap: 7px; padding: 6px 14px 6px 48px; color: #999; text-decoration: none; font-size: 14px; border-left: 2px solid transparent; transition: color 0.15s, background 0.15s, border-color 0.15s; }
+#sidebar .nav-sub-link:hover { color: #ccc; background: #111116; }
+#sidebar .nav-sub-link.active { color: #d4a830; background: #16140a; border-left-color: #F5A623; }
+#sidebar .nav-sub-num { font-size: 12px; flex-shrink: 0; color: #666; }
+#sidebar .nav-sub-link.active .nav-sub-num { color: #a07820; }
+#sidebar .sep { border: none; border-top: 1px solid #1e1e22; margin: 8px 0; }
+#sidebar .nav-scope { display: flex; align-items: center; gap: 8px; padding: 8px 18px; color: #555; text-decoration: none; font-size: 13px; transition: color 0.15s, background 0.15s; border-radius: 0; }
+#sidebar .nav-scope:hover { color: #888; background: #111116; }
+#sidebar .nav-scope.active { color: #aaa; background: #18181e; }
+
+.doc-body { flex: 1; overflow-y: auto; padding: 32px 40px 80px; height: 100%; }
+.doc-body-inner { max-width: 960px; margin: 0 auto; }
+
+/* ── 节标题 ── */
+.sec-heading { font-size: 14px; font-weight: 700; color: #555; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #1e1e22; }
+
+/* ── 需求范围网格 ── */
+.scope-section { margin-bottom: 40px; }
+.scope-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.scope-card { background: #18181c; border: 1px solid #26262e; border-radius: 6px; overflow: hidden; transition: border-color 0.15s, transform 0.1s; cursor: pointer; }
+.scope-card:hover { border-color: #F5A623; transform: translateY(-2px); }
+.scope-thumb { width: 100%; aspect-ratio: 16/9; background: #1c1c22; display: flex; align-items: center; justify-content: center; color: #2e2e36; font-size: 12px; font-style: italic; overflow: hidden; border-bottom: 1px solid #26262e; }
+.scope-thumb img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.scope-name { padding: 8px 12px; font-size: 14px; font-weight: 600; color: #aaa; text-align: center; }
+
+/* ── 界面块 ── */
+.iface-block { margin-bottom: 24px; scroll-margin-top: 24px; }
+.iface-label { display: flex; align-items: center; gap: 10px; padding: 0 0 10px; margin-bottom: 0; border-bottom: 1px solid #2a2a2a; }
+.iface-label-num { font-family: monospace; font-size: 13px; font-weight: 700; color: #888; background: #1e1e22; border: 1px solid #2e2e38; padding: 2px 8px; border-radius: 3px; flex-shrink: 0; }
+.iface-label-name { color: #ddd; font-size: 20px; font-weight: 700; }
+.iface-body { display: grid; grid-template-columns: 44% 1fr; align-items: start; border-bottom: 1px solid #1e1e22; margin-bottom: 24px; }
+.iface-left { background: #0d0d10; border-right: 1px solid #1e1e22; display: flex; align-items: flex-start; justify-content: center; padding: 20px; position: sticky; top: 0; }
+.iface-screenshot { width: 100%; max-width: 480px; aspect-ratio: 16/9; background: #181820; border: 1px solid #2a2a30; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #2e2e36; font-size: 12px; font-style: italic; overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
+.iface-screenshot:hover { border-color: #F5A62366; }
+.iface-screenshot img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; pointer-events: none; }
+.iface-right { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; background: #111114; overflow-y: auto; }
+
+/* ── 控件卡片 ── */
+.widget-block { background: #1c1c21; border-radius: 6px; padding: 14px 18px; border: 1px solid #26262e; }
+.module-header-row { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; padding-bottom: 9px; border-bottom: 1px solid #26262e; }
+.module-num { background: #F5A623; color: #1a1a1f; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; flex-shrink: 0; }
+.module-header-title { font-size: 16px; font-weight: 700; color: #F5A623; }
+.widget-type { font-size: 13px; color: #555; font-style: italic; margin-bottom: 8px; }
+.widget-generic { padding: 10px 16px; display: flex; align-items: center; gap: 10px; background: #17171b; border: 1px solid #22222a; border-radius: 6px; }
+.widget-generic .wg-name { font-size: 15px; font-weight: 600; color: #999; }
+.widget-generic .wg-type { font-size: 13px; color: #444; font-style: italic; }
+
+/* ── 子模块 ── */
+.sub-mod-sep { border-top: 1px solid #26262e; margin: 14px 0 12px; }
+.sub-mod-header { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.sub-mod-badge { background: #F5A623; color: #1a1a1f; padding: 2px 9px; border-radius: 4px; font-size: 12px; font-weight: 900; flex-shrink: 0; }
+.sub-mod-name { font-size: 15px; font-weight: 700; color: #ddd; }
+
+/* ── 字段 ── */
+.field-label { font-size: 13px; color: #777; font-weight: 600; margin-top: 10px; margin-bottom: 4px; letter-spacing: 0.5px; }
+.field-content { font-size: 16px; color: #ddd; line-height: 1.85; }
+.field-content ol { padding-left: 16px; }
+.field-content ol li { margin-bottom: 4px; }
+.arrow { font-weight: 700; color: #fff; }
+
+/* ── 状态标签 ── */
+.state-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; background: #0e0e12; border-radius: 6px; padding: 8px 10px; align-items: center; }
+.state-row.widget-state-group { margin-bottom: 6px; }
+.state-widget-name { font-size: 13px; color: #777; font-weight: 600; margin-right: 6px; padding-right: 8px; border-right: 1px solid #2e2e36; }
+.state-tag { background: #26262e; border: 1px solid #32323c; color: #bbb; padding: 4px 12px; border-radius: 5px; font-size: 14px; }
+.subwidget-row { display: flex; align-items: center; gap: 6px; margin: 2px 0 8px; opacity: 0.5; }
+.subwidget-label { font-size: 11px; color: #888; white-space: nowrap; }
+.subwidget-chip { font-size: 11px; background: rgba(255,255,255,0.05); color: #999; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; padding: 1px 7px; }
+.state-tag-hotzone { background: #0a1a2e; border: 1px solid #4a9eff55; color: #4a9eff; padding: 4px 12px; border-radius: 5px; font-size: 14px; }
+.diagram-hint-item { list-style: none; margin: 6px 0; padding: 0; }
+.diagram-hint-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; background: #0e0e12; border-radius: 6px; padding: 8px 10px; align-items: center; }
+.diagram-hint-tag { background: transparent; border: 1px dashed #3a3a50; color: #5a5a70; padding: 4px 12px; border-radius: 5px; font-size: 14px; font-style: normal; display: inline-flex; align-items: center; gap: 5px; }
+.diagram-hint-tag::before { content: ""; }
+.diagram-hint-tag.diagram-tag-spec::before    { content: ""; width: 8px; height: 8px; background: #48C75F; border-radius: 2px; flex-shrink: 0; }
+.diagram-hint-tag.diagram-tag-hotzone::before { content: ""; width: 8px; height: 8px; background: #4a9eff; border-radius: 2px; flex-shrink: 0; }
+.diagram-hint-tag.diagram-tag-state::before   { content: ""; width: 8px; height: 8px; background: #a855f7; border-radius: 2px; flex-shrink: 0; }
+.diagram-hint-tag.diagram-tag-generic::before { content: ""; width: 8px; height: 8px; background: #F5A623; border-radius: 2px; flex-shrink: 0; }
+
+/* ── @职能 ── */
+.mention-block { margin-top: 12px; border-top: 1px solid #26262e; padding-top: 9px; display: flex; flex-direction: column; gap: 5px; }
+.mention-row { font-size: 15px; color: #bbb; line-height: 1.8; display: flex; gap: 7px; align-items: flex-start; flex-wrap: wrap; }
+.at-tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.at-tag.role-plan { background: #1e3a7a; border: 1px solid #4a9eff44; color: #4a9eff; }
+.at-tag.role-gui  { background: #1a4a26; border: 1px solid #48C75F44; color: #48C75F; }
+.at-tag.role-dev  { background: #5c1a1a; border: 1px solid #ff555544; color: #ff8080; }
+
+/* ── 需求缺漏 ── */
+.gap-block { padding: 10px 0; border-bottom: 1px solid #26262e; }
+.gap-block:last-child { border-bottom: none; padding-bottom: 0; }
+.gap-level { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 3px; font-size: 13px; font-weight: 700; margin-right: 6px; }
+.gap-level.p0 { background: #5c1a1a; color: #ff6b6b; }
+.gap-level.p1 { background: #3d2c00; color: #F5A623; }
+.gap-level.p2 { background: #1a2a1a; color: #48C75F; }
+.gap-title { font-size: 15px; color: #fff; font-weight: 600; }
+.gap-desc { font-size: 15px; color: #777; margin-top: 4px; line-height: 1.7; }
+
+.doc-footer { text-align: center; color: #2e2e36; font-size: 14px; padding: 32px 0; margin-top: 48px; border-top: 1px solid #1e1e22; }
+
+/* ── mention inline（按 MD 顺序排列） ── */
+.mention-inline { margin-top: 10px; }
+.mention-inline .mention-row { font-size: 15px; color: #bbb; line-height: 1.8; display: flex; gap: 7px; align-items: flex-start; flex-wrap: wrap; }
+
+/* ── 列表层级 ── */
+.field-content .top-list { padding-left: 18px; margin: 4px 0; }
+.field-content .top-list > li { margin-bottom: 6px; line-height: 1.85; }
+.field-content .sub-list { padding-left: 14px; margin: 4px 0; list-style: none; }
+.field-content .sub-list > li { margin-bottom: 4px; color: #c0c0c8; }
+.field-content .sub-list > li::before { content: ""; }
+.field-content .deep-list { padding-left: 14px; margin: 3px 0; list-style: none; }
+.field-content .deep-list > li { margin-bottom: 2px; color: #888; font-size: 13px; }
+.field-content .deep-list > li::before { content: "· "; color: #555; }
+
+/* ── 灯箱 ── */
+#lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 9999; align-items: center; justify-content: center; }
+#lightbox.open { display: flex; }
+#lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 6px; box-shadow: 0 8px 48px #000; }
+#lightbox-close { position: absolute; top: 20px; right: 28px; color: #888; font-size: 32px; cursor: pointer; line-height: 1; transition: color 0.15s; }
+#lightbox-close:hover { color: #fff; }
+</style>
+</head>
+<body>
+<div class="doc-layout">
+<nav id="sidebar">
+<div class="sidebar-title">界面导航</div>
+<a class="nav-scope" href="#scope"><span style="color:#3a3a40;font-size:14px;font-weight:700">A</span> 需求范围</a>
+<hr class="sep">
+<a class="nav-iface-link" href="#iface-1"><span class="nav-iface-num">[1]</span>任务面板 · 随机任务初始态</a>
+<a class="nav-sub-link" href="#iface-1-m1"><span class="nav-sub-num">①</span>关闭按钮</a>
+<a class="nav-sub-link" href="#iface-1-m2"><span class="nav-sub-num">②</span>刷新提示</a>
+<a class="nav-sub-link" href="#iface-1-m3"><span class="nav-sub-num">③</span>随机任务纸张区</a>
+<a class="nav-sub-link" href="#iface-1-m4"><span class="nav-sub-num">④</span>每日任务区</a>
+<a class="nav-sub-link" href="#iface-1-m5"><span class="nav-sub-num">⑤</span>进度条</a>
+<a class="nav-iface-link" href="#iface-2"><span class="nav-iface-num">[2]</span>任务面板 · 随机任务进行中态</a>
+<a class="nav-sub-link" href="#iface-2-m1"><span class="nav-sub-num">①</span>关闭按钮</a>
+<a class="nav-sub-link" href="#iface-2-m2"><span class="nav-sub-num">②</span>刷新提示</a>
+<a class="nav-sub-link" href="#iface-2-m3"><span class="nav-sub-num">③</span>随机任务纸张区（展开态）</a>
+<a class="nav-sub-link" href="#iface-2-m4"><span class="nav-sub-num">④</span>每日任务区</a>
+<a class="nav-sub-link" href="#iface-2-m5"><span class="nav-sub-num">⑤</span>进度条（更高进度）</a>
+<a class="nav-iface-link" href="#iface-3"><span class="nav-iface-num">[3]</span>HUD · 游戏内任务提示</a>
+<a class="nav-sub-link" href="#iface-3-m1"><span class="nav-sub-num">①</span>任务入口（花盆图标）</a>
+<a class="nav-sub-link" href="#iface-3-m2"><span class="nav-sub-num">②</span>任务提示条</a>
+<a class="nav-sub-link" href="#iface-3-m3"><span class="nav-sub-num">③</span>任务完成奖励提示</a>
+<a class="nav-sub-link" href="#iface-3-m4"><span class="nav-sub-num">④</span>虚拟摇杆</a>
+<a class="nav-sub-link" href="#iface-3-m5"><span class="nav-sub-num">⑤</span>技能按钮区（3个）</a>
+<a class="nav-sub-link" href="#iface-3-m6"><span class="nav-sub-num">⑥</span>底部快捷栏</a>
+</nav>
+<div class="doc-main">
+<div class="doc-body">
+<div class="doc-body-inner">
+
+<header class="doc-header">
+  <div class="doc-header-top">
+    <div class="doc-header-left">
+      <div class="doc-icon">📋</div>
+      <div class="doc-title-group">
+        <span class="doc-version">v0.1</span>
+        <span class="doc-title">S66 任务系统交互说明</span>
+      </div>
+    </div>
+    <div class="doc-brand">FIT-ARK &nbsp; DESIGN</div>
+  </div>
+  <div class="doc-header-meta">
+    <div class="doc-meta-names">策划 <span>@策划</span><span class="doc-meta-sep"> ｜ </span>UXD <span>@UXD</span></div>
+    <div class="doc-legend">
+      <span class="legend-item plan"><span class="legend-dot plan"></span>策划注意</span>
+      <span class="legend-item gui"><span class="legend-dot gui"></span>GUI/VX注意</span>
+      <span class="legend-item dev"><span class="legend-dot dev"></span>程序注意</span>
+    </div>
+  </div>
+</header>
+<section class="scope-section" id="scope">
+<div class="sec-heading">A. 需求范围</div>
+<div class="scope-grid">
+</div>
+</section>
+
+<section class="spec-section">
+<div class="sec-heading">B. 方案说明</div>
+<div class="iface-block" id="iface-1">
+<div class="iface-label"><span class="iface-label-num">[1]</span><span class="iface-label-name">任务面板 · 随机任务初始态</span></div>
+<div class="iface-body">
+<div class="iface-left">
+<div class="iface-screenshot"><img src="design/1-任务界面1.png" alt="任务面板 · 随机任务初始态"></div>
+</div>
+<div class="iface-right">
+<div class="widget-block" id="iface-1-m1">
+<div class="module-header-row"><span class="module-num">1</span><span class="module-header-title">关闭按钮</span></div>
+<div class="widget-type">图标按钮（通用控件，页面标题 = 任务面板）</div>
+</div>
+<div class="widget-block" id="iface-1-m2">
+<div class="module-header-row"><span class="module-num">2</span><span class="module-header-title">刷新提示</span></div>
+<div class="widget-type">纯展示</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于面板右上角，文字「每日任务刷新时间 24:00」</li>
+</ol>
+</div>
+</div>
+<div class="widget-block" id="iface-1-m3">
+<div class="module-header-row"><span class="module-num">3</span><span class="module-header-title">随机任务纸张区</span></div>
+<div class="widget-type">列表控件</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>左侧占位为撕边纸张样式底板，以胶带固定在黄色底板上</li>
+<li>初始态：纸张上仅显示 1 条随机任务条目，带「NEW」红色标签；纸张下半部分为空白（待后续任务填入）</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 点击单条随机任务是否有跳转/详情交互？</li>
+</ol>
+</div>
+<div class="subwidget-row"><span class="subwidget-label">子控件</span><span class="subwidget-chip">随机任务条目</span></div>
+<div class="sub-mod-sep"></div>
+<div class="sub-mod-header"><span class="sub-mod-badge">1</span><span class="sub-mod-name">随机任务条目</span></div>
+<div class="widget-type">列表项</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>棕色胶带纸条样式底板 + 任务描述文字</li>
+<li>NEW 态：左侧显示红色「NEW」标签</li>
+<li>完成态：右侧显示绿色✓图标，底板颜色加深</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 点击条目是否触发跳转或查看详情？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">NEW态</span><span class="state-tag">常态</span><span class="state-tag">已完成态</span></div>
+</div>
+<div class="widget-block" id="iface-1-m4">
+<div class="module-header-row"><span class="module-num">4</span><span class="module-header-title">每日任务区</span></div>
+<div class="widget-type">列表控件</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于面板右侧，2 列网格排列，本界面展示 4 张任务卡片</li>
+<li>右下角有吉祥物（种子）装饰图，纯展示</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 点击每日任务卡片是否有跳转/领奖/详情交互？</li>
+</ol>
+</div>
+<div class="subwidget-row"><span class="subwidget-label">子控件</span><span class="subwidget-chip">每日任务卡片</span></div>
+<div class="sub-mod-sep"></div>
+<div class="sub-mod-header"><span class="sub-mod-badge">1</span><span class="sub-mod-name">每日任务卡片</span></div>
+<div class="widget-type">卡片</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>拍立得照片样式：上方为任务场景图（含人物剪影图标），下方为任务描述文字（截断显示，末尾「...」）</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 点击卡片触发什么行为？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">常态</span></div>
+<div class="mention-inline"><div class="mention-row"><span class="at-tag role-plan">@策划</span> 每日任务卡片是否有完成态/锁定态？</div>
+</div>
+</div>
+<div class="widget-block" id="iface-1-m5">
+<div class="module-header-row"><span class="module-num">5</span><span class="module-header-title">进度条</span></div>
+<div class="widget-type">进度条</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于面板底部，横贯全宽，橙色填充进度 + 棕色底轨</li>
+<li>轨道上分布多个菱形节点，代表阶段奖励解锁点</li>
+<li>中央有圆形当前进度指示器（橙色圆形）</li>
+<li>初始态：进度约 30%，仅初始节点高亮，其余菱形节点为灰色</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 点击菱形节点是否可领取奖励？进度条是否可点击？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row widget-state-group"><span class="state-widget-name">节点</span><span class="state-tag">未解锁</span><span class="state-tag">已解锁</span></div>
+<div class="mention-inline"><div class="mention-row"><span class="at-tag role-plan">@策划</span> 是否有节点-可领取态（可点击领取奖励）？</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="iface-block" id="iface-2">
+<div class="iface-label"><span class="iface-label-num">[2]</span><span class="iface-label-name">任务面板 · 随机任务进行中态</span></div>
+<div class="iface-body">
+<div class="iface-left">
+<div class="iface-screenshot"><img src="design/2-任务界面2.png" alt="任务面板 · 随机任务进行中态"></div>
+</div>
+<div class="iface-right">
+<div class="widget-block" id="iface-2-m1">
+<div class="module-header-row"><span class="module-num">1</span><span class="module-header-title">关闭按钮</span></div>
+<div class="widget-type">图标按钮（通用控件，页面标题 = 任务面板）</div>
+</div>
+<div class="widget-block" id="iface-2-m2">
+<div class="module-header-row"><span class="module-num">2</span><span class="module-header-title">刷新提示</span></div>
+<div class="widget-type">纯展示</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>同界面[1]，位于右上角，文字「每日任务刷新时间 24:00」</li>
+</ol>
+</div>
+</div>
+<div class="widget-block" id="iface-2-m3">
+<div class="module-header-row"><span class="module-num">3</span><span class="module-header-title">随机任务纸张区（展开态）</span></div>
+<div class="widget-type">列表控件</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>纸张上显示 5 条随机任务条目，纵向排列，充满纸张</li>
+<li>第 1–3 条：常态（深棕色底板，无完成标记）</li>
+<li>第 4–5 条：已完成态（底板颜色加深 + 右侧绿色✓图标）</li>
+<li>与界面[1]对比：NEW 标签消失，任务列表已完整展开</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 点击单条随机任务是否有跳转/详情交互？</li>
+</ol>
+</div>
+<div class="subwidget-row"><span class="subwidget-label">子控件</span><span class="subwidget-chip">随机任务条目（同界面[1]）</span></div>
+</div>
+<div class="widget-block" id="iface-2-m4">
+<div class="module-header-row"><span class="module-num">4</span><span class="module-header-title">每日任务区</span></div>
+<div class="widget-type">列表控件</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>同界面[1]，右侧 2 列 4 张每日任务卡片，布局不变</li>
+</ol>
+</div>
+<div class="subwidget-row"><span class="subwidget-label">子控件</span><span class="subwidget-chip">每日任务卡片（同界面[1]）</span></div>
+</div>
+<div class="widget-block" id="iface-2-m5">
+<div class="module-header-row"><span class="module-num">5</span><span class="module-header-title">进度条（更高进度）</span></div>
+<div class="widget-type">进度条</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>同底部横贯进度条，进度较界面[1]明显更高（约 80%）</li>
+<li>多个菱形节点已高亮（橙色），表示对应阶段奖励已解锁</li>
+<li>当前进度指示器（橙色圆形）位于轨道偏右位置</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 已解锁节点是否可点击领取奖励？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row widget-state-group"><span class="state-widget-name">节点</span><span class="state-tag">未解锁</span><span class="state-tag">已解锁</span></div>
+<div class="mention-inline"><div class="mention-row"><span class="at-tag role-plan">@策划</span> 是否有节点-可领取态（可点击领取奖励）？</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="iface-block" id="iface-3">
+<div class="iface-label"><span class="iface-label-num">[3]</span><span class="iface-label-name">HUD · 游戏内任务提示</span></div>
+<div class="iface-body">
+<div class="iface-left">
+<div class="iface-screenshot"><img src="design/3-HUD.png" alt="HUD · 游戏内任务提示"></div>
+</div>
+<div class="iface-right">
+<div class="widget-block" id="iface-3-m1">
+<div class="module-header-row"><span class="module-num">1</span><span class="module-header-title">任务入口（花盆图标）</span></div>
+<div class="widget-type">图标按钮</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于屏幕左上角，橙色花盆图标</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li>点击 <span class="arrow">→</span> 打开任务面板（界面[1]/[2]）</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">常态</span><span class="state-tag">按下态</span><span class="state-tag-hotzone">点击热区(≥80px)</span></div>
+</div>
+<div class="widget-block" id="iface-3-m2">
+<div class="module-header-row"><span class="module-num">2</span><span class="module-header-title">任务提示条</span></div>
+<div class="widget-type">纯展示</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于屏幕左上角花盆图标右侧，纵向排列 2 条任务描述文字条</li>
+<li>棕色半透明底板 + 任务描述文字</li>
+<li>已完成的任务条目右侧显示绿色✓图标</li>
+<li>触发条件：有进行中的随机任务时显示</li>
+<li>消失条件：<strong>@策划</strong> 任务提示条何时收起/隐藏？是否支持手动收起？</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li><strong>@策划</strong> 点击任务提示条是否跳转到任务面板？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">显示态（进行中）</span><span class="state-tag">显示态（部分完成）</span></div>
+<div class="mention-inline"><div class="mention-row"><span class="at-tag role-plan">@策划</span> 是否有收起态？</div>
+</div>
+</div>
+<div class="widget-block" id="iface-3-m3">
+<div class="module-header-row"><span class="module-num">3</span><span class="module-header-title">任务完成奖励提示</span></div>
+<div class="widget-type">纯展示</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于屏幕右侧，纵向弹出，显示本次完成任务获得的奖励列表</li>
+<li>每行格式：「获得奖励物品×100」文字 + 道具图标 + 数量</li>
+<li>触发条件：完成任意随机任务时弹出</li>
+<li>消失条件：<strong>@策划</strong> 停留时长？是否自动消失？</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li>无点击交互，为纯状态展示控件</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">显示态</span><span class="state-tag">隐藏态</span></div>
+</div>
+<div class="widget-block" id="iface-3-m4">
+<div class="module-header-row"><span class="module-num">4</span><span class="module-header-title">虚拟摇杆</span></div>
+<div class="widget-type">虚拟摇杆</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于屏幕左下区域，大圆盘底座 + 中心小圆形滑块，半透明白色</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li>按下并拖动 <span class="arrow">→</span> 控制角色移动方向，滑块随手指偏移</li>
+<li>松开 <span class="arrow">→</span> 滑块回中，角色停止移动</li>
+</ol>
+</div>
+<div class="field-label">滑动热区</div>
+<div class="field-content">屏幕左侧约 1/3 区域</div>
+<div class="diagram-hint-row"><span class="diagram-hint-tag diagram-tag-hotzone">【需要热区示意图】</span></div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">待机态</span><span class="state-tag">激活态</span></div>
+</div>
+<div class="widget-block" id="iface-3-m5">
+<div class="module-header-row"><span class="module-num">5</span><span class="module-header-title">技能按钮区（3个）</span></div>
+<div class="widget-type">图标按钮组</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于屏幕右下角，3 个圆形技能按钮，L 形排列</li>
+<li>左下为技能A（跑跳人物图标）、右上为技能B（闪电图标）、右下为技能C（旋转图标）</li>
+<li>按钮均为半透明白色圆形底板 + 白色图标</li>
+</ol>
+</div>
+<div class="sub-mod-sep"></div>
+<div class="sub-mod-header"><span class="sub-mod-badge">1</span><span class="sub-mod-name">技能A按钮</span></div>
+<div class="widget-type">图标按钮</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>显示跑跳人物图标</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li>点击 <span class="arrow">→</span> <strong>@策划</strong> 触发何种行为？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">常态</span><span class="state-tag">按下态</span><span class="state-tag-hotzone">点击热区(≥80px)</span></div>
+<div class="sub-mod-sep"></div>
+<div class="sub-mod-header"><span class="sub-mod-badge">2</span><span class="sub-mod-name">技能B按钮</span></div>
+<div class="widget-type">图标按钮</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>显示闪电/能量图标</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li>点击 <span class="arrow">→</span> <strong>@策划</strong> 触发何种行为？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">常态</span><span class="state-tag">按下态</span><span class="state-tag-hotzone">点击热区(≥80px)</span></div>
+<div class="sub-mod-sep"></div>
+<div class="sub-mod-header"><span class="sub-mod-badge">3</span><span class="sub-mod-name">技能C按钮</span></div>
+<div class="widget-type">图标按钮</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>显示旋转图标</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li>点击 <span class="arrow">→</span> <strong>@策划</strong> 触发何种行为？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">常态</span><span class="state-tag">按下态</span><span class="state-tag-hotzone">点击热区(≥80px)</span></div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">整体显示</span><span class="state-tag">整体隐藏</span></div>
+</div>
+<div class="widget-block" id="iface-3-m6">
+<div class="module-header-row"><span class="module-num">6</span><span class="module-header-title">底部快捷栏</span></div>
+<div class="widget-type">图标按钮组</div>
+<div class="field-label">显示</div>
+<div class="field-content"><ol class="top-list">
+<li>位于屏幕左下角底部，横向排列 3 个图标按钮：聊天（气泡图标）/ 动作（人物图标）/ 拍照（相机图标）</li>
+</ol>
+</div>
+<div class="field-label">交互说明</div>
+<div class="field-content"><ol class="top-list">
+<li>点击聊天 <span class="arrow">→</span> <strong>@策划</strong> 触发何种行为？</li>
+<li>点击动作 <span class="arrow">→</span> <strong>@策划</strong> 触发何种行为？</li>
+<li>点击拍照 <span class="arrow">→</span> <strong>@策划</strong> 触发何种行为？</li>
+</ol>
+</div>
+<div class="field-label">控件状态</div>
+<div class="state-row"><span class="state-tag">常态</span><span class="state-tag">按下态</span><span class="state-tag-hotzone">点击热区(≥80px)</span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="doc-footer">FIT-ARK DESIGN &nbsp;·&nbsp; S66 任务系统交互说明 &nbsp;·&nbsp; @UXD</div>
+</div>
+</div>
+
+</div>
+</div>
+<div id="lightbox"><span id="lightbox-close">✕</span><img id="lightbox-img" src="" alt=""></div>
+<script>
+// ── 灯箱 ──
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lightbox-img');
+document.getElementById('lightbox-close').addEventListener('click', () => lb.classList.remove('open'));
+lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('open'); });
+
+function openLightbox(src) { lbImg.src = src; lb.classList.add('open'); }
+
+// 界面截图点击放大
+document.querySelectorAll('.iface-screenshot img').forEach(img => {
+  img.parentElement.addEventListener('click', () => openLightbox(img.src));
+});
+
+// scope 卡片点击跳转
+document.querySelectorAll('.scope-card[data-iface]').forEach(card => {
+  card.addEventListener('click', () => {
+    const id = 'iface-' + card.dataset.iface;
+    const el = document.getElementById(id);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); activateById(id); }
+  });
+});
+
+// scope 缩略图点击放大（阻止冒泡避免触发卡片跳转）
+document.querySelectorAll('.scope-thumb img').forEach(img => {
+  img.addEventListener('click', e => { e.stopPropagation(); openLightbox(img.src); });
+});
+
+const allLinks = document.querySelectorAll('#sidebar a');
+const clearAll = () => allLinks.forEach(l => l.classList.remove('active'));
+
+const activateById = (id) => {
+  clearAll();
+  const sub = document.querySelector('#sidebar .nav-sub-link[href="#'+id+'"]');
+  if (sub) {
+    sub.classList.add('active');
+    const ifaceId = id.replace(/-m\d+$/, '');
+    const par = document.querySelector('#sidebar .nav-iface-link[href="#'+ifaceId+'"]');
+    if (par) par.classList.add('active');
+    return;
+  }
+  const iface = document.querySelector('#sidebar .nav-iface-link[href="#'+id+'"]');
+  if (iface) iface.classList.add('active');
+  const scope = document.querySelector('#sidebar .nav-scope[href="#'+id+'"]');
+  if (scope) scope.classList.add('active');
+};
+
+// 点击跳转时立即激活
+allLinks.forEach(l => l.addEventListener('click', () => {
+  const id = l.getAttribute('href').slice(1);
+  activateById(id);
+}));
+
+// Scroll-spy：观察所有锚点，取「已过顶部阈值」中最后一个（top 最大）
+const scrollRoot = document.querySelector('.doc-body');
+const targets = [...document.querySelectorAll('#scope, .iface-block[id], .widget-block[id]')];
+let ticking = false;
+scrollRoot.addEventListener('scroll', () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => {
+    ticking = false;
+    const rootRect = scrollRoot.getBoundingClientRect();
+    const line = rootRect.height * 0.25; // 25% 处为判断基准线
+    let best = null, bestTop = -Infinity;
+    for (const el of targets) {
+      const top = el.getBoundingClientRect().top - rootRect.top;
+      // 已越过基准线（top <= line），取最靠近基准线的（top 最大）
+      if (top <= line && top > bestTop) { bestTop = top; best = el; }
+    }
+    // fallback：全部在基准线以下时，取距顶部最近的
+    if (!best) {
+      let minTop = Infinity;
+      for (const el of targets) {
+        const top = el.getBoundingClientRect().top - rootRect.top;
+        if (top < minTop) { minTop = top; best = el; }
+      }
+    }
+    if (best) activateById(best.id);
+  });
+}, { passive: true });
+
+// 初始激活
+if (targets.length) activateById(targets[0].id);
+</script>
+</body>
+</html>

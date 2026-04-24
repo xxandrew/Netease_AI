@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>界面易用性分析报告 — iface_06_搜索队伍弹窗.png</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; background:#f5f6fa; color:#2d3436; }
+  .header { background: linear-gradient(135deg,#2d3436,#636e72); color:#fff; padding:32px 40px; }
+  .header h1 { font-size:24px; margin-bottom:8px; }
+  .header .meta { font-size:13px; opacity:.8; }
+  .container { max-width:1080px; margin:0 auto; padding:32px 20px; }
+  .summary-box { background:#fff; border-radius:12px; padding:24px; margin-bottom:24px;
+                  box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .total-score { font-size:64px; font-weight:bold; text-align:center; padding:16px 0; }
+  .score-label-main { text-align:center; color:#636e72; margin-bottom:20px; font-size:14px; }
+  .score-row { display:flex; align-items:center; margin:6px 0; font-size:13px; }
+  .score-label { width:120px; color:#636e72; }
+  .score-bar { font-family:monospace; letter-spacing:1px; flex:1; }
+  .score-num { width:40px; text-align:right; font-weight:bold; }
+  .overall-summary { background:#f0f8ff; border-left:4px solid #74b9ff;
+                       padding:12px 16px; border-radius:4px; font-size:14px; margin-top:16px; }
+  .dim-card { background:#fff; border-radius:12px; padding:24px; margin-bottom:20px;
+               box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .dim-header { display:flex; justify-content:space-between; align-items:center;
+                 margin-bottom:14px; border-bottom:1px solid #f0f0f0; padding-bottom:10px; }
+  .dim-name { font-size:18px; font-weight:bold; }
+  .dim-score { font-size:28px; font-weight:bold; }
+  .detail-table { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+  .detail-table th { background:#f8f9fa; padding:8px 12px; text-align:left;
+                      border:1px solid #e9ecef; font-weight:600; }
+  .detail-table td { padding:8px 12px; border:1px solid #e9ecef; }
+  .detail-table tr:nth-child(even) td { background:#fafafa; }
+  .issues-section, .sugg-section { margin-top:12px; }
+  .issues-section ul, .sugg-section ul { list-style:none; margin-top:6px; }
+  li.issue  { padding:4px 0; color:#e17055; font-size:13px; }
+  li.ok     { padding:4px 0; color:#00b894; font-size:13px; }
+  li.sugg   { padding:4px 0; color:#2980b9; font-size:13px; }
+  li.sugg-empty { padding:4px 0; color:#b2bec3; font-size:13px; }
+  .footer   { text-align:center; color:#b2bec3; font-size:12px; padding:24px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🕹️ 游戏界面易用性分析报告</h1>
+  <div class="meta">
+    文件：iface_06_搜索队伍弹窗.png &nbsp;|&nbsp;
+    分辨率：1920×1080 &nbsp;|&nbsp;
+    平台：mobile &nbsp;|&nbsp;
+    分析时间：2026-04-17 19:12:23
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 综合评分 -->
+  <div class="summary-box">
+    <div class="total-score" style="color:#27ae60">85</div>
+    <div class="score-label-main">综合易用性得分（满分 100）</div>
+    <div class="score-row"><span class="score-label">热区尺寸</span><span class="score-bar" style="color:#f39c12">███████░░░</span><span class="score-num">70</span></div>
+<div class="score-row"><span class="score-label">费茨定律</span><span class="score-bar" style="color:#27ae60">██████████</span><span class="score-num">100</span></div>
+<div class="score-row"><span class="score-label">热区间距</span><span class="score-bar" style="color:#f39c12">███████░░░</span><span class="score-num">70</span></div>
+<div class="score-row"><span class="score-label">热区重叠</span><span class="score-bar" style="color:#27ae60">██████████</span><span class="score-num">100</span></div>
+<div class="score-row"><span class="score-label">认知负荷</span><span class="score-bar" style="color:#27ae60">█████████░</span><span class="score-num">95</span></div>
+<div class="score-row"><span class="score-label">视野遮挡</span><span class="score-bar" style="color:#f39c12">███████░░░</span><span class="score-num">70</span></div>
+<div class="score-row"><span class="score-label">拇指热区分布</span><span class="score-bar" style="color:#27ae60">██████████</span><span class="score-num">100</span></div>
+
+    <div class="overall-summary">📝 AI 整体评价：（未配置 API Key，本报告基于按键标注数据的量化分析，不含 GPT 视觉评价。）</div>
+  </div>
+
+  <!-- 各维度详情 -->
+  
+<div class="dim-card"><div class="dim-header"><span class="dim-name">热区尺寸</span><span class="dim-score" style="color:#f39c12">70 分</span></div><div class="issues-section"><strong>发现问题：</strong><ul><li class="issue">⚠ 未提供按键标注数据，无法精确计算 dp 尺寸</li></ul></div><div class="sugg-section"><strong>优化建议：</strong><ul><li class="sugg">→ 提供 --buttons 标注 JSON 以获得精确热区评估</li></ul></div></div>
+
+<div class="dim-card"><div class="dim-header"><span class="dim-name">费茨定律</span><span class="dim-score" style="color:#27ae60">100 分</span></div><div class="issues-section"><strong>发现问题：</strong><ul><li class="ok">✅ 无发现问题</li></ul></div><div class="sugg-section"><strong>优化建议：</strong><ul><li class="sugg-empty">暂无优化建议</li></ul></div></div>
+
+<div class="dim-card"><div class="dim-header"><span class="dim-name">热区间距</span><span class="dim-score" style="color:#f39c12">70 分</span></div><div class="issues-section"><strong>发现问题：</strong><ul><li class="issue">⚠ 未提供足够的按键标注数据，无法计算间距</li></ul></div><div class="sugg-section"><strong>优化建议：</strong><ul><li class="sugg">→ 提供 --buttons 标注 JSON 以获得精确间距评估</li></ul></div></div>
+
+<div class="dim-card"><div class="dim-header"><span class="dim-name">热区重叠</span><span class="dim-score" style="color:#27ae60">100 分</span></div><div class="issues-section"><strong>发现问题：</strong><ul><li class="ok">✅ 无发现问题</li></ul></div><div class="sugg-section"><strong>优化建议：</strong><ul><li class="sugg-empty">暂无优化建议</li></ul></div></div>
+
+<div class="dim-card"><div class="dim-header"><span class="dim-name">认知负荷</span><span class="dim-score" style="color:#27ae60">95 分</span></div><div class="issues-section"><strong>发现问题：</strong><ul><li class="ok">✅ 无发现问题</li></ul></div><div class="sugg-section"><strong>优化建议：</strong><ul><li class="sugg-empty">暂无优化建议</li></ul></div></div>
+
+<div class="dim-card"><div class="dim-header"><span class="dim-name">视野遮挡</span><span class="dim-score" style="color:#f39c12">70 分</span></div><div class="issues-section"><strong>发现问题：</strong><ul><li class="ok">✅ 无发现问题</li></ul></div><div class="sugg-section"><strong>优化建议：</strong><ul><li class="sugg-empty">暂无优化建议</li></ul></div></div>
+
+<div class="dim-card"><div class="dim-header"><span class="dim-name">拇指热区分布</span><span class="dim-score" style="color:#27ae60">100 分</span></div><div class="issues-section"><strong>发现问题：</strong><ul><li class="ok">✅ 无发现问题</li></ul></div><div class="sugg-section"><strong>优化建议：</strong><ul><li class="sugg-empty">暂无优化建议</li></ul></div></div>
+
+
+</div>
+<div class="footer">由 UIUsabilityAnalyzer 自动生成 | 理论依据：Fitts's Law · ISO 9241-9 · Cognitive Load Theory · Steven Hoober 单手操作研究</div>
+</body>
+</html>

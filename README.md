@@ -59,18 +59,19 @@ AIforXuX/
 
 ## 🔄 模块状态
 
-| 模块 | 状态 | 说明 |
-|------|------|------|
-| 00_memory | 🟢 已搭建 | 记忆系统基础结构完成 |
-| 01_game_info | 🟢 已搭建 | 子模块结构完成 |
-| 02_game_interaction_design | 🟢 已搭建 | 子模块结构完成 |
-| 03_document_processing | 🟡 待展开 | 仅根目录 |
-| 04_calendar_meeting | 🟡 待展开 | 仅根目录 |
-| 05_knowledge_base | 🟡 待展开 | 仅根目录 |
-| 06_data_analytics | 🟡 待展开 | 仅根目录 |
-| 07_general | 🟡 待展开 | 仅根目录 |
-| 08_tools | 🟡 待展开 | 仅根目录 |
-| 09_update_log | 🟡 待展开 | 仅根目录 |
+| 模块 | 状态 | 已有内容 |
+|------|------|---------|
+| 00_memory | 🟢 已搭建 | 记忆系统四级结构（长期/重要/自动/短期）+ 索引 |
+| 01_game_info | 🟢 已上线 | 4项技能：舆情挖掘 v2.1 ✅、视觉分析 🔧、视频解析 ✅、界面易用性分析 ✅ |
+| 02_game_interaction_design | 🟢 已搭建 | 四子目录结构完成（原型/UI模式/流程图/参考案例）|
+| 03_document_processing | � 已上线 | PPT 制作工作流 + 4套模板 + Prompt 库 + 实际产出文件 |
+| 04_calendar_meeting | 🟡 规划中 | 基础结构已建，功能待展开 |
+| 05_knowledge_base | 🟡 规划中 | 基础结构已建，RAG 知识库待展开 |
+| 06_data_analytics | 🟡 规划中 | 基础结构已建，数据看板待展开 |
+| 07_general | � 已上线 | 系统分析技能 (SKILL_系统分析.md) ✅ |
+| 08_tools | 🟡 规划中 | 子模块规划完成（HTML/桌面应用/转换器/工具集）|
+| 09_update_log | � 已搭建 | 更新记录模板 + 初始化记录 ✅ |
+| project/ | 🟢 运行中 | game_tracker / king_world_tracker / ui_usability_analyzer / desktop_pet |
 
 ---
 
@@ -85,7 +86,12 @@ AIforXuX/
 
 ## 📝 更新记录
 
-所有更新记录存放在 `09_update_log/` 模块中，同时 `CHANGELOG.md` 保留关键版本变更摘要。
+| 文件 | 定位 | 写入时机 |
+|------|------|---------|
+| `09_update_log/YYYYMMDD_*.md` | 详细变更日志，每次更新一个文件 | 每次完成模块更新后 |
+| `CHANGELOG.md` | 关键版本里程碑摘要，面向快速回溯 | 重大功能上线 / 架构调整时 |
+
+> **原则**：日常修改写 `09_update_log/`，值得单独标记的版本节点才写 `CHANGELOG.md`。
 
 ---
 

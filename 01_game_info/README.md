@@ -25,9 +25,10 @@
 
 | 技能 | 文件 | 状态 | 说明 |
 |---|---|---|---|
-| �️ **社交媒体舆情挖掘** | [`collectors/SKILL_舆情挖掘.md`](collectors/SKILL_舆情挖掘.md) | ✅ 已上线 v2.1 | 从小红书自动抓取玩家评论，6 维度 AI 分类，生成 HTML 报告 |
-| �📸 **静态界面视觉诊断** | [`collectors/SKILL_视觉分析.md`](collectors/SKILL_视觉分析.md) | 🔧 开发中 | 对游戏截图进行视觉流线、热区、认知负荷分析 |
+| 🗣️ **社交媒体舆情挖掘** | [`collectors/SKILL_舆情挖掘.md`](collectors/SKILL_舆情挖掘.md) | ✅ 已上线 v2.1 | 从小红书自动抓取玩家评论，6 维度 AI 分类，生成 HTML 报告 |
+| 📸 **静态界面视觉诊断** | [`collectors/SKILL_视觉分析.md`](collectors/SKILL_视觉分析.md) | 🔧 开发中 | 对游戏截图进行视觉流线、热区、认知负荷分析 |
 | 🎬 **游玩视频时序解析** | [`collectors/SKILL_视频解析.md`](collectors/SKILL_视频解析.md) | ✅ Phase 1 完成 | 从录屏中自动找出玩家卡点和关键操作节点 |
+| 🕹️ **游戏界面易用性分析** | [`collectors/SKILL_界面易用性分析.md`](collectors/SKILL_界面易用性分析.md) | ✅ Phase 1 完成 | 7 维度量化分析（热区/费茨定律/认知负荷等），输出 HTML+JSON 报告 |
 
 ---
 
@@ -51,5 +52,6 @@
 ## 📋 Skill 快速索引
 
 - **有玩家评论想分析** → 查看 [`SKILL_舆情挖掘.md`](collectors/SKILL_舆情挖掘.md)
-- **有截图需要分析** → 查看 [`SKILL_视觉分析.md`](collectors/SKILL_视觉分析.md)
+- **有截图需要分析（视觉）** → 查看 [`SKILL_视觉分析.md`](collectors/SKILL_视觉分析.md)
+- **有截图需要分析（易用性量化）** → 查看 [`SKILL_界面易用性分析.md`](collectors/SKILL_界面易用性分析.md)
 - **有录屏需要解析** → 查看 [`SKILL_视频解析.md`](collectors/SKILL_视频解析.md)
